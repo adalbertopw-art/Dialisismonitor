@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 4%;
+    --foreground: 210 15% 92%;
+    --border: 220 10% 12%;
+    --card: 220 10% 8%;
+    --card-foreground: 210 15% 92%;
+    --primary: 199 89% 48%;            /* #0ea5e9 — Vivid Cyan */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 220 15% 12%;
+    --secondary-foreground: 210 15% 92%;
+    --muted: 220 14% 12%;
+    --muted-foreground: 210 10% 60%;
+    --accent: 199 89% 48%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 354 70% 53%;        /* #f43f5e — Rose/Red for HID */
+    --destructive-foreground: 0 0% 98%;
+    --warning: 38 92% 52%;             /* #f59e0b — Amber */
+    --success: 158 64% 52%;            /* #10b981 — Emerald */
+    --sidebar: 0 0% 3%;
+    --sidebar-foreground: 210 15% 92%;
+    --sidebar-border: 0 0% 8%;
+    --input: 220 15% 15%;
+    --ring: 199 89% 48%;
+    --radius: 0.5rem;
+  }
+
+  html, body { 
+    @apply bg-background text-foreground; 
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .animate-pulse-fast {
+    animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}

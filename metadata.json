@@ -1,0 +1,6 @@
+{
+  "name": "BestShape - Nephredict",
+  "description": "Sistema experto de monitoreo hemodinámico por IA para unidades de hemodiálisis. Predicción en tiempo real de hipotensión intradialítica (HID) e hipertensión (IDHTN) basada en Piccoli NDT 2023.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
