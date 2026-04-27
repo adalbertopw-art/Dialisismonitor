@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Cpu, RefreshCcw, Activity, Droplets, AlertTriangle, ShieldCheck } from "lucide-react";
-import { ResponsiveContainer, ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from "recharts";
+import { ResponsiveContainer, ComposedChart, Line, Scatter, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from "recharts";
 
 export function ClosedLoopBiofeedback({ patient, readings, lastReading }: any) {
   const [isBiofeedbackActive, setIsBiofeedbackActive] = useState(true);
@@ -23,11 +23,14 @@ export function ClosedLoopBiofeedback({ patient, readings, lastReading }: any) {
     // If RBV drops below -12%, machine lowers UFR.
     const actualUfrRaw = Number(r.ufr || 0);
     let autoUfr = actualUfrRaw;
+    let aiIntervened = false;
     if (isBiofeedbackActive) {
       if (rbv < -14) {
         autoUfr = Math.max(0, autoUfr - 8);
+        aiIntervened = true;
       } else if (rbv < -11) {
         autoUfr = Math.max(5, autoUfr - 3);
+        aiIntervened = true;
       } else if (rbv > -8 && autoUfr < 15) {
          autoUfr = Math.min(15, autoUfr + 1);
       }
@@ -38,11 +41,13 @@ export function ClosedLoopBiofeedback({ patient, readings, lastReading }: any) {
       rbv: Number(rbv.toFixed(1)) || 0,
       actualUfr: actualUfrRaw,
       optimizedUfr: Number(autoUfr.toFixed(1)) || 0,
+      aiInterventionMarker: aiIntervened ? Number(autoUfr.toFixed(1)) : null,
     };
   });
 
   const latestData = data[data.length - 1];
   const rbvCritical = latestData.rbv < -12;
+  const isInterveningRightNow = isBiofeedbackActive && latestData.optimizedUfr < latestData.actualUfr;
 
   return (
     <Card className="bg-[#0a0a0a] border-white/5 shadow-2xl mt-4 overflow-hidden relative">
@@ -88,21 +93,26 @@ export function ClosedLoopBiofeedback({ patient, readings, lastReading }: any) {
                 <span className="text-[9px] font-bold uppercase text-muted-foreground mt-2 bg-white/5 px-2 py-1 rounded border border-white/10">Límite Crítico: -15%</span>
              </div>
 
-             <div className={`p-4 rounded-lg flex justify-between items-center border ${isBiofeedbackActive ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-white/5 border-white/10'}`}>
+             <div className={`p-4 rounded-lg flex justify-between items-center border ${isBiofeedbackActive ? (isInterveningRightNow ? 'bg-amber-500/20 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'bg-emerald-500/10 border-emerald-500/20') : 'bg-white/5 border-white/10'}`}>
                <div>
-                 <span className={`block text-[10px] font-bold uppercase tracking-widest ${isBiofeedbackActive ? 'text-emerald-400' : 'text-muted-foreground'}`}>
-                   Tasa de Ultrafiltración
+                 <span className={`block text-[10px] font-bold uppercase tracking-widest ${isBiofeedbackActive ? (isInterveningRightNow ? 'text-amber-400' : 'text-emerald-400') : 'text-muted-foreground'}`}>
+                   {isInterveningRightNow ? 'IA INTERVINIENDO (UFR REDUCIDA)' : 'Tasa de Ultrafiltración'}
                  </span>
                  <span className="text-sm font-mono text-white/50 line-through mr-2">{isBiofeedbackActive ? latestData.actualUfr : ''}</span>
-                 <span className="text-xl font-mono font-bold text-white transition-all">{isBiofeedbackActive ? latestData.optimizedUfr : latestData.actualUfr}</span>
+                 <span className={`text-2xl font-mono font-bold transition-all ${isInterveningRightNow ? 'text-amber-400' : 'text-white'}`}>{isBiofeedbackActive ? latestData.optimizedUfr : latestData.actualUfr}</span>
                  <span className="text-[9px] text-muted-foreground ml-1 uppercase">mL/kg/h</span>
                </div>
-               <Droplets size={20} className={isBiofeedbackActive ? "text-emerald-500" : "text-muted-foreground"} />
+               <Droplets size={24} className={isBiofeedbackActive ? (isInterveningRightNow ? "text-amber-500 animate-pulse" : "text-emerald-500") : "text-muted-foreground"} />
              </div>
              
-             <div className="text-[9px] text-muted-foreground/60 leading-relaxed italic bg-black/40 p-3 rounded-lg border border-white/5">
+             <div className={`text-[9px] text-muted-foreground/60 leading-relaxed italic p-3 rounded-lg border ${isInterveningRightNow ? 'bg-amber-500/10 border-amber-500/20' : 'bg-black/40 border-white/5'}`}>
                 {isBiofeedbackActive ? 
-                  "Sistema ajustando ultrafiltración en tiempo real (Feedback Loop) para mantener el RBV por encima del límite crítico de tolerancia del paciente." : 
+                  (isInterveningRightNow ? 
+                    <span className="text-amber-400 font-bold flex flex-col gap-1">
+                      <span className="flex items-center gap-1"><AlertTriangle size={10} /> IA REDUJO UF AUTOMÁTICAMENTE</span>
+                      <span className="font-normal text-amber-500/80">RBV disminuyó críticamente. Previniendo IDHT y trombosis del acceso.</span>
+                    </span>
+                    : "Sistema ajustando ultrafiltración en tiempo real (Feedback Loop) para mantener el RBV por encima del límite crítico de tolerancia del paciente.") : 
                   "Biofeedback DESACTIVADO. El paciente está recibiendo tasa de UF fija. Riesgo incrementado de depleción brusca de volumen e hipotensión."
                 }
              </div>
@@ -124,19 +134,25 @@ export function ClosedLoopBiofeedback({ patient, readings, lastReading }: any) {
                   <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
+                        const ptData = payload[0].payload;
+                        const intervened = ptData.aiInterventionMarker !== null;
                         return (
-                          <div className="bg-[#000]/90 border border-white/10 p-3 rounded shadow-xl">
+                          <div className={`bg-[#000]/90 border ${intervened ? 'border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-white/10'} p-3 rounded shadow-xl`}>
                             <div className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2 mb-1">
-                              <Activity size={10} /> Minuto {payload[0].payload.minute}
+                              <Activity size={10} /> Minuto {ptData.minute}
+                              {intervened && <span className="ml-auto text-amber-500 text-[8px] tracking-widest animate-pulse">INTERVENCIÓN IA</span>}
                             </div>
                             <div className="space-y-1">
                               <div className="text-[11px] font-bold text-white flex justify-between gap-4">
                                 <span>RBV (%):</span>
-                                <span className={(payload[0].value as number) < -12 ? "text-amber-500" : "text-emerald-400"}>{payload[0].value}%</span>
+                                <span className={ptData.rbv < -12 ? "text-amber-500" : "text-emerald-400"}>{ptData.rbv}%</span>
                               </div>
                               <div className="text-[11px] font-bold text-white flex justify-between gap-4">
                                 <span>UFR Aplicada:</span>
-                                <span className="text-sky-400">{payload[1]?.value} mL/kg/h</span>
+                                <div>
+                                  {intervened && <span className="text-muted-foreground line-through mr-2">{ptData.actualUfr}</span>}
+                                  <span className={intervened ? "text-amber-400" : "text-sky-400"}>{ptData.optimizedUfr} mL/kg/h</span>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -173,6 +189,17 @@ export function ClosedLoopBiofeedback({ patient, readings, lastReading }: any) {
                     dot={false}
                   />
                   
+                  {isBiofeedbackActive && (
+                    <Scatter 
+                      yAxisId="right" 
+                      dataKey="aiInterventionMarker" 
+                      fill="#f59e0b" 
+                      stroke="#000"
+                      strokeWidth={1}
+                      r={6}
+                    />
+                  )}
+                  
                   <defs>
                     <linearGradient id="colorRbv" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor={rbvCritical ? "#f59e0b" : "#10b981"} stopOpacity={0.3} />
@@ -184,6 +211,7 @@ export function ClosedLoopBiofeedback({ patient, readings, lastReading }: any) {
              <div className="flex items-center justify-end gap-3 mt-2 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded bg-emerald-400"></div>Volumen Relativo (RBV)</div>
                <div className="flex items-center gap-1.5"><div className="w-2 h-0.5 border-t border-dashed border-sky-400"></div>UFR Aplicada</div>
+               {isBiofeedbackActive && <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-amber-500 border border-black shadow-[0_0_5px_rgba(245,158,11,0.5)]"></div>Intervención Automática IA</div>}
              </div>
           </div>
         </div>

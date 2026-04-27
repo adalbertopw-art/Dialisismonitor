@@ -10,6 +10,7 @@ import {
   Heart,
   ChevronRight,
   Clock,
+  ShieldCheck,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -68,8 +69,37 @@ export default function Dashboard() {
     (p) => p.currentReading?.riskScore >= 65 || p.phase === "hid",
   );
 
+  // Simulate active AI interventions based on early warning (Kim et al.)
+  const aiInterventions = patients.filter((patient) => {
+    return patient.currentReading?.riskScore >= 45;
+  });
+
   return (
     <div className="space-y-6">
+      {aiInterventions.length > 0 && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 flex items-start gap-4">
+          <div className="bg-amber-500/20 p-2 rounded-full mt-1">
+            <ShieldCheck size={24} className="text-amber-500" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-amber-500 font-bold text-sm uppercase tracking-widest flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              Intervenciones Autónomas IA en Curso ({aiInterventions.length})
+            </h3>
+            <p className="text-xs text-amber-500/80 mt-1 mb-3">La Inteligencia Artificial está ajustando la Ultrafiltración (UFR) y Temperatura del Dializado en tiempo real para prevenir eventos de hipotensión inminentes (HID).</p>
+            <div className="flex flex-wrap gap-2">
+              {aiInterventions.map(p => (
+                <div key={p.id} className="bg-amber-500/20 border border-amber-500/40 rounded px-3 py-1.5 flex items-center gap-2 text-xs cursor-pointer hover:bg-amber-500/30 transition-colors" onClick={() => setLocation(`/paciente/${p.id}`)}>
+                  <span className="font-bold text-amber-200">Cama {p.bed}</span>
+                  <span className="text-amber-500/70 border-l border-amber-500/30 pl-2">↓UFR</span>
+                  <span className="text-amber-500/70">↓T°d</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
@@ -236,9 +266,30 @@ export default function Dashboard() {
             </TableHeader>
             <TableBody>
               {patients.map((patient: any) => {
-                const ufr =
+                const ufrRaw =
                   (patient.targetUfVolume * 1000) /
                   (patient.sessionDuration * patient.dryWeight);
+
+                let autoUfr = ufrRaw;
+                let autoTemp = patient.dialysateTemp;
+                let isAiIntervening = false;
+
+                const risk = patient.currentReading?.riskScore || 0;
+
+                if (risk >= 65) {
+                  autoUfr = Math.max(0, autoUfr - 8);
+                  autoTemp = 35.5; 
+                  isAiIntervening = true;
+                } else if (risk >= 45) {
+                  autoUfr = Math.max(5, autoUfr - 3);
+                  autoTemp = 36.0;
+                  isAiIntervening = true;
+                } else if (risk < 25 && autoUfr < 15) {
+                   autoUfr = Math.min(15, autoUfr + 1);
+                }
+
+                const ufr = ufrRaw; // Fallback mapping for original usage if needed outside
+
                 const m1 = patient.id % 3 === 0 || patient.diabetic === 1;
                 const m2 = patient.id % 4 === 1;
                 const m3 = patient.id % 5 === 2 || patient.cardiopathy === 1;
@@ -333,19 +384,24 @@ export default function Dashboard() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-0.5 text-[10px] font-mono leading-none w-20">
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground mr-2">
+                      <div className="flex flex-col gap-0.5 text-[10px] font-mono leading-none w-24">
+                        {isAiIntervening && (
+                          <div className="flex items-center gap-1 text-[8px] font-bold text-amber-500 uppercase pb-1 tracking-widest animate-pulse">
+                            <ShieldCheck size={10} /> IA Intervino
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between mt-0.5">
+                          <span className="text-muted-foreground mr-1 flex items-center gap-1">
                             T°d
                           </span>
                           <span
-                            className={
-                              patient.dialysateTemp >= 36.5
-                                ? "text-amber-500 font-bold"
-                                : "text-emerald-500 font-bold"
-                            }
+                            className={cn(
+                              "font-bold",
+                              isAiIntervening ? "text-amber-500" : (autoTemp >= 36.5 ? "text-amber-500" : "text-emerald-500")
+                            )}
                           >
-                            {patient.dialysateTemp}°
+                            {isAiIntervening && autoTemp < patient.dialysateTemp && <span className="line-through text-muted-foreground mr-1">{patient.dialysateTemp}°</span>}
+                            {autoTemp.toFixed(1)}°
                           </span>
                         </div>
                         <div className="flex items-center justify-between mt-0.5">
@@ -378,18 +434,22 @@ export default function Dashboard() {
                             /{patient.targetUfVolume}L
                           </span>
                         </span>
-                        <span
-                          className={cn(
-                            "text-[9px] font-bold uppercase tracking-tighter mt-1.5",
-                            ufr > 13
-                              ? "text-rose-500"
-                              : ufr > 10
-                                ? "text-amber-500"
-                                : "text-emerald-500",
+                        <div className="flex flex-col mt-1">
+                          {isAiIntervening && (
+                            <span className="text-[8px] font-bold text-amber-500 uppercase mb-0.5">Ajuste IA (-{(ufrRaw - autoUfr).toFixed(1)})</span>
                           )}
-                        >
-                          UFR {ufr.toFixed(1)} ml/kg/h
-                        </span>
+                          <span
+                            className={cn(
+                              "text-[10px] font-bold uppercase tracking-tight",
+                              isAiIntervening ? "text-amber-400" : (ufrRaw > 13 ? "text-rose-500" : ufrRaw > 10 ? "text-amber-500" : "text-emerald-500"),
+                            )}
+                          >
+                            <span className="flex items-center gap-1">
+                              UFR {isAiIntervening && <span className="line-through text-muted-foreground text-[8px]">{ufrRaw.toFixed(1)}</span>} 
+                              <span className={cn(isAiIntervening && "animate-pulse")}>{autoUfr.toFixed(1)}</span>
+                            </span>
+                          </span>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="w-[140px]">

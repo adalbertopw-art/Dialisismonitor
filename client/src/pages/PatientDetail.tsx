@@ -34,6 +34,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Patient, PatientReading } from "@shared/types";
 import {
+  ComposedChart,
   LineChart,
   Line,
   XAxis,
@@ -44,6 +45,7 @@ import {
   ReferenceLine,
   AreaChart,
   Area,
+  Scatter,
 } from "recharts";
 import { cn } from "@/lib/utils";
 import html2canvas from "html2canvas";
@@ -160,8 +162,30 @@ export default function PatientDetail() {
     patient,
   );
   const predictiveLog = readings
-    .slice(-20)
-    .map((r) => ({ minute: r.minuteOfSession, sbp: r.sbp }));
+    .slice(-30)
+    .map((r) => {
+      const risk = r.riskScore || 0;
+      const isAiIntervening = risk >= 45;
+      
+      const ufrRaw = (patient.targetUfVolume * 1000) / (patient.sessionDuration * patient.dryWeight);
+      let ufrStr = "";
+      let tempStr = "";
+      
+      if (risk >= 65) {
+          ufrStr = `↓ UFR a ${Math.max(0, ufrRaw - 8).toFixed(1)}`;
+          tempStr = `↓ T°d 35.5°C`;
+      } else if (risk >= 45) {
+          ufrStr = `↓ UFR a ${Math.max(5, ufrRaw - 3).toFixed(1)}`;
+          tempStr = `↓ T°d 36.0°C`;
+      }
+
+      return { 
+        minute: r.minuteOfSession, 
+        sbp: r.sbp,
+        aiInterventionMarker: isAiIntervening ? r.sbp : null,
+        interventionDetails: isAiIntervening ? `${ufrStr} | ${tempStr}` : null
+      };
+    });
 
   const riskStatusLabel =
     lastReading.riskScore > 65
@@ -421,7 +445,7 @@ export default function PatientDetail() {
           )}
         >
           <div className="overflow-hidden">
-            <div className="p-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 border-t border-white/5 bg-[#0a0a0a]">
+            <div className="p-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 border-t border-white/5 bg-[#0a0a0a]">
               <div className="space-y-1">
                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                   Edad
@@ -440,14 +464,14 @@ export default function PatientDetail() {
               </div>
               <div className="space-y-1">
                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
-                  Vintage HD
+                   Vintage HD
                 </span>
                 <p className="text-sm font-mono font-bold text-white/90">
                   {patient.dialysisVintage} meses
                 </p>
               </div>
               <div className="space-y-1">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                   Peso Seco
                 </span>
                 <p className="text-sm font-mono font-bold text-white/90">
@@ -455,7 +479,15 @@ export default function PatientDetail() {
                 </p>
               </div>
               <div className="space-y-1">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                  Etiología
+                </span>
+                <p className="text-xs font-bold text-white/90 truncate" title={patient.etiology}>
+                  {patient.etiology || "-"}
+                </p>
+              </div>
+              <div className="space-y-1">
+                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                   Diabetes
                 </span>
                 <p className="text-sm font-mono font-bold text-white/90">
@@ -463,11 +495,19 @@ export default function PatientDetail() {
                 </p>
               </div>
               <div className="space-y-1">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                   Cardiopatía
                 </span>
                 <p className="text-sm font-mono font-bold text-white/90">
                   {patient.cardiopathy ? "Sí" : "No"}
+                </p>
+              </div>
+              <div className="space-y-1">
+                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                  Acceso
+                </span>
+                <p className="text-xs font-bold text-white/90 truncate" title={`${patient.vascularAccessType} (${patient.vascularAccessLocation})`}>
+                  {patient.vascularAccessType || "-"}
                 </p>
               </div>
             </div>
@@ -613,6 +653,10 @@ export default function PatientDetail() {
                 <span className="hidden md:inline text-[10px] uppercase font-bold text-emerald-500 tracking-widest">
                   Gradiente SBP: +1.46 mmHg/min
                 </span>
+                <span className="hidden md:flex items-center gap-1 text-[10px] font-bold text-amber-500 uppercase tracking-widest">
+                  <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.5)]"></div>
+                  Intervención IA
+                </span>
                 <Badge className="bg-rose-500 text-white border-none h-6 px-3 text-[10px] font-black uppercase tracking-widest leading-none">
                   Riesgo Inminente
                 </Badge>
@@ -623,7 +667,7 @@ export default function PatientDetail() {
               {/* Main Chart */}
               <div className="lg:col-span-3 h-[240px] relative">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={predictiveLog}>
+                  <ComposedChart data={predictiveLog}>
                     <CartesianGrid
                       strokeDasharray="3 3"
                       vertical={false}
@@ -654,12 +698,7 @@ export default function PatientDetail() {
                     <Area
                       type="monotone"
                       dataKey="sbp"
-                      data={readings
-                        .slice(-30)
-                        .map((r) => ({
-                          minute: r.minuteOfSession,
-                          sbp: r.sbp,
-                        }))}
+                      data={predictiveLog}
                       stroke="none"
                       fill="#f43f5e"
                       fillOpacity={0.1}
@@ -669,12 +708,7 @@ export default function PatientDetail() {
                     <Line
                       type="monotone"
                       dataKey="sbp"
-                      data={readings
-                        .slice(-30)
-                        .map((r) => ({
-                          minute: r.minuteOfSession,
-                          sbp: r.sbp,
-                        }))}
+                      data={predictiveLog}
                       stroke="#f43f5e"
                       strokeWidth={2}
                       dot={false}
@@ -728,25 +762,38 @@ export default function PatientDetail() {
                       fill="#f43f5e"
                       fillOpacity={0.05}
                     />
+                    
+                    {/* AI Interventions */}
+                    <Scatter 
+                      dataKey="aiInterventionMarker" 
+                      fill="#f59e0b" 
+                      stroke="#000"
+                      strokeWidth={1}
+                      r={6}
+                    />
 
                     <Tooltip
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
+                          const ptData = payload[0].payload;
+                          const hasIntervention = ptData.aiInterventionMarker !== null && ptData.aiInterventionMarker !== undefined;
                           return (
-                            <div className="bg-[#000]/90 border border-white/10 p-3 rounded shadow-xl">
+                            <div className={`bg-[#000]/90 border border-white/10 p-3 rounded shadow-xl ${hasIntervention ? 'border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : ''}`}>
                               <div className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2 mb-1">
                                 <Clock size={10} /> Min.{" "}
-                                {payload[0].payload.minute} — PREDICCIÓN LSTM
+                                {ptData.minute} — PREDICCIÓN LSTM
                               </div>
-                              <div className="text-sm font-bold text-white mb-2">
-                                PAS Estimada:{" "}
-                                <span className="text-rose-500">
-                                  {payload[0].value}
-                                </span>{" "}
-                                mmHg
+                              <div className="text-sm font-bold text-white mb-2 flex items-center justify-between gap-4">
+                                <span>PAS Estimada: <span className="text-rose-500">{payload[0].value}</span> mmHg</span>
+                                {hasIntervention && <span className="text-[8px] font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded animate-pulse">IA INTERVINO</span>}
                               </div>
+                              {hasIntervention && ptData.interventionDetails && (
+                                <div className="text-[10px] font-bold text-amber-400 mb-2 border-l-2 border-amber-500 pl-2">
+                                  {ptData.interventionDetails}
+                                </div>
+                              )}
                               <div className="text-[9px] text-muted-foreground">
-                                IC 95%: [
+                                IC 80%: [
                                 {Math.round(Number(payload[0].value) - 10)} -{" "}
                                 {Math.round(Number(payload[0].value) + 8)}]
                               </div>
@@ -756,7 +803,7 @@ export default function PatientDetail() {
                         return null;
                       }}
                     />
-                  </LineChart>
+                  </ComposedChart>
                 </ResponsiveContainer>
               </div>
 
@@ -1318,6 +1365,10 @@ export default function PatientDetail() {
                 <SimpleRow label="Edad" value={`${patient.age} años`} />
                 <SimpleRow label="Sexo" value={patient.sex} />
                 <SimpleRow
+                  label="Etiología SRC"
+                  value={patient.etiology || "-"}
+                />
+                <SimpleRow
                   label="Peso seco"
                   value={`${patient.dryWeight} kg`}
                 />
@@ -1333,22 +1384,41 @@ export default function PatientDetail() {
             </Card>
 
             <Card className="bg-[#111] border-white/5">
-              <CardHeader className="py-3 px-4 border-b border-white/5">
+              <CardHeader className="py-3 px-4 border-b border-white/5 flex flex-row items-center justify-between">
                 <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
-                  <Droplet size={14} className="text-rose-400" /> Laboratorio
-                  Base
+                  <Droplet size={14} className="text-rose-400" /> Labs Recientes
                 </CardTitle>
+                <div className="text-[8px] text-muted-foreground uppercase">{patient.historicalLabs?.[0]?.date.split('-').slice(1).join('/') || "Mes Actual"}</div>
               </CardHeader>
               <CardContent className="py-4 space-y-2">
                 <SimpleRow
                   label="Albúmina"
-                  value={`${patient.albumin} g/dL`}
-                  highlight={patient.albumin < 4}
+                  value={`${patient.historicalLabs?.[0]?.albumin || patient.albumin} g/dL`}
+                  highlight={(patient.historicalLabs?.[0]?.albumin || patient.albumin) < 3.5}
                 />
                 <SimpleRow
                   label="Hemoglobina"
-                  value={`${patient.hemoglobin} g/dL`}
-                  highlight={patient.hemoglobin < 10}
+                  value={`${patient.historicalLabs?.[0]?.hemoglobin || patient.hemoglobin} g/dL`}
+                  highlight={(patient.historicalLabs?.[0]?.hemoglobin || patient.hemoglobin) < 10}
+                />
+                <SimpleRow
+                  label="Kt/V (sp)"
+                  value={`${patient.historicalLabs?.[0]?.spKtv || '?'} `}
+                  highlight={(patient.historicalLabs?.[0]?.spKtv || 1.3) < 1.2}
+                />
+                <SimpleRow
+                  label="Fósforo"
+                  value={`${patient.historicalLabs?.[0]?.phosphorus || '?'} mg/dL`}
+                  highlight={(patient.historicalLabs?.[0]?.phosphorus || 4.5) > 5.5}
+                />
+                <SimpleRow
+                  label="Calcio"
+                  value={`${patient.historicalLabs?.[0]?.calcium || '?'} mg/dL`}
+                />
+                <SimpleRow
+                  label="PTH Intacta"
+                  value={`${patient.historicalLabs?.[0]?.pth || '?'} pg/mL`}
+                  highlight={(patient.historicalLabs?.[0]?.pth || 250) > 300}
                 />
               </CardContent>
             </Card>
@@ -1527,19 +1597,44 @@ function generatePredictiveHorizon(
   currentPhase: string,
   patient: any,
 ) {
-  const last10 = readings.slice(-10);
-  if (last10.length < 3) return [];
+  // Use last 20 points as per Piccoli NDT 2023 evidence
+  const last20 = readings.slice(-20);
+  if (last20.length < 3) return [];
 
-  const slope = (last10[last10.length - 1].sbp - last10[0].sbp) / last10.length;
-  const lastSbp = last10[last10.length - 1].sbp;
+  // Simulate LOESS smoothing local slope over the window
+  // Give more weight to the most recent elements
+  let weightedSumSbp = 0;
+  let weightSum = 0;
+  for (let i = 0; i < last20.length; i++) {
+    const weight = (i + 1) / last20.length; // linear weight increase
+    weightedSumSbp += last20[i].sbp * weight;
+    weightSum += weight;
+  }
+  const smoothedLastSbp = weightedSumSbp / weightSum;
+  
+  // Calculate a recent gradient (simulate local regression)
+  const recentSlice = last20.slice(-5);
+  const recentSlope = (recentSlice[recentSlice.length - 1].sbp - recentSlice[0].sbp) / recentSlice.length;
 
   const points = [];
   for (let min = 5; min <= 60; min += 5) {
-    let predictedSbp = lastSbp + slope * (min / 3);
-    if (currentPhase === "stable") {
+    let predictedSbp = smoothedLastSbp + recentSlope * (min / 2);
+    
+    // Factors: IDWG / UFR effect (BestShape Project)
+    const ufrRaw = (patient.targetUfVolume * 1000) / (patient.sessionDuration * patient.dryWeight);
+    const ufrImpact = (ufrRaw - 10) * 0.5 * (min / 10);
+    predictedSbp -= Math.max(0, ufrImpact);
+    
+    // Integrate AI intervention effects based on RiskScore (Kim et al.)
+    const risk = patient.currentReading?.riskScore || 0;
+    if (risk >= 45) {
+        // AI intervention is active, counteracting the slope gradually
+        predictedSbp += 1.5 * (min / 5); 
+    } else if (currentPhase === "stable") {
       const target = 130;
       predictedSbp += (target - predictedSbp) * 0.05 * (min / 10);
     }
+    
     points.push({
       minute: min,
       sbp: Math.round(Math.max(60, Math.min(200, predictedSbp))),

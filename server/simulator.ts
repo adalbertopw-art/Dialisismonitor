@@ -134,13 +134,56 @@ export function initSimulator() {
 
   PATIENT_PROFILES.forEach((profile, index) => {
     const id = index + 1;
+    
+    // Generate derived clinical properties
+    let etiology = "Nefropatía Glomerular";
+    if (profile.diabetic) etiology = "Nefropatía Diabética";
+    else if (profile.age > 65) etiology = "Nefroangioesclerosis";
+    
+    // Most patients have an AV Fistula, but older patients or those with high vintage might use catheters
+    const isGraftOrCvc = Math.random() > 0.7 || profile.age > 75;
+    const vascularAccessType = isGraftOrCvc ? (Math.random() > 0.5 ? "CVC Tunelizado" : "FAV Protésica") : "FAV Autóloga";
+    const locations = ["Brazo Izquierdo", "Brazo Derecho", "Yugular Derecha", "Yugular Izquierda"];
+    const locIndex = isGraftOrCvc && vascularAccessType === "CVC Tunelizado" ? 2 + Math.floor(Math.random() * 2) : Math.floor(Math.random() * 2);
+    const vascularAccessLocation = locations[locIndex];
+
     const patient: Patient = { 
       id, 
       ...profile,
+      etiology,
+      vascularAccessType,
+      vascularAccessLocation,
       historicalLabs: generateMockLabs(),
       medications: generateMockMedications(profile.diabetic, profile.cardiopathy)
     } as any;
     storage.setPatient(patient);
+    
+    // Generate logical pre-dialysis data
+    const gipd = 1.5 + Math.random() * 2.5; // Interdialytic weight gain between 1.5 and 4.0 kg
+    const sbpPre = 135 + Math.round((Math.random() - 0.5) * 30);
+    const dbpPre = 75 + Math.round((Math.random() - 0.5) * 20);
+    const hrPre = 70 + Math.round((Math.random() - 0.5) * 20);
+    const tookMed = Math.random() > 0.5 ? 1 : 0;
+    const medTypes = ["IECA", "ARA2", "BCC", "BB", "Otro"];
+    
+    storage.setPreDialysis(patient.id, {
+      id: patient.id,
+      patientId: patient.id,
+      timestamp: new Date().toISOString(),
+      weightPreDialysis: Number((profile.dryWeight + gipd).toFixed(1)),
+      sbpPreDialysis: sbpPre,
+      dbpPreDialysis: dbpPre,
+      hrPreDialysis: hrPre,
+      interdialyticWeightGain: Number(gipd.toFixed(1)),
+      symptomDizziness: Math.random() > 0.8 ? 1 : 0,
+      symptomNausea: Math.random() > 0.9 ? 1 : 0,
+      symptomHeadache: sbpPre > 160 ? 1 : (Math.random() > 0.8 ? 1 : 0),
+      symptomChestPain: 0,
+      symptomCramps: Math.random() > 0.85 ? 1 : 0,
+      tookAntihypertensive: tookMed,
+      antihypertensiveType: tookMed ? medTypes[Math.floor(Math.random() * medTypes.length)] : "",
+      notes: "Paciente valorado pre-diálisis. " + (sbpPre > 150 ? "PA elevada al ingreso." : "Hemodinámicamente estable.")
+    });
     
     // Randomize initial progress to make the unit look active at different stages
     const totalMinutes = patient.sessionDuration * 60;
@@ -158,7 +201,7 @@ export function initSimulator() {
       ufRemoved: initialUfRemoved,
       hidEpisodes: 0,
       idhtEpisodes: 0,
-      preSbp: 135 + noise()
+      preSbp: sbpPre
     };
 
     storage.patientStates.set(id, state);
@@ -227,7 +270,31 @@ export function initSimulator() {
           state.phaseMinute = 0;
           state.hidEpisodes = 0;
           state.idhtEpisodes = 0;
-          state.preSbp = 135 + noise();
+          
+          // Re-generate pre-dialysis data for the new session
+          const gipd = 1.5 + Math.random() * 2.5;
+          const sbpPre = 135 + Math.round((Math.random() - 0.5) * 30);
+          state.preSbp = sbpPre;
+          
+          storage.setPreDialysis(patient.id, {
+            id: patient.id,
+            patientId: patient.id,
+            timestamp: new Date().toISOString(),
+            weightPreDialysis: Number((patient.dryWeight + gipd).toFixed(1)),
+            sbpPreDialysis: sbpPre,
+            dbpPreDialysis: 75 + Math.round((Math.random() - 0.5) * 20),
+            hrPreDialysis: 70 + Math.round((Math.random() - 0.5) * 20),
+            interdialyticWeightGain: Number(gipd.toFixed(1)),
+            symptomDizziness: Math.random() > 0.8 ? 1 : 0,
+            symptomNausea: Math.random() > 0.9 ? 1 : 0,
+            symptomHeadache: sbpPre > 160 ? 1 : (Math.random() > 0.8 ? 1 : 0),
+            symptomChestPain: 0,
+            symptomCramps: Math.random() > 0.85 ? 1 : 0,
+            tookAntihypertensive: Math.random() > 0.5 ? 1 : 0,
+            antihypertensiveType: "IECA",
+            notes: "Paciente valorado en inicio de nuevo ciclo."
+          });
+          
           // Resetting session for demo
           // storage.readings = new Map(); 
         } else {

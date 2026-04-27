@@ -28,6 +28,9 @@ export interface Patient {
   hemoglobin: number;
   diabetic: number;
   cardiopathy: number;
+  etiology?: string;
+  vascularAccessType?: string;
+  vascularAccessLocation?: string;
   targetUfVolume: number;
   sessionDuration: number;
   bloodFlowRate: number;

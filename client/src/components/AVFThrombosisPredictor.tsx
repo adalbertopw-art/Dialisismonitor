@@ -5,7 +5,11 @@ import { Activity, AlertTriangle, GitBranch, ArrowRight, ActivitySquare, ArrowUp
 export function AVFThrombosisPredictor({ patient, lastReading }: any) {
   if (!patient) return null;
 
-  // AI Logic for AVF Thrombosis Prediction
+  const accessType = patient.vascularAccessType || "FAV Autóloga";
+  const isCVC = accessType.includes("CVC");
+  const accessLocation = patient.vascularAccessLocation || "Desconocido";
+
+  // AI Logic for Vascular Access Survival/Complication Prediction
   const venousPressure = lastReading?.venousPressure || 165;
   const bloodFlow = patient.bloodFlowRate || 300;
   const isDiabetic = !!patient.diabetic;
@@ -18,6 +22,7 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
   if (bloodFlow < 300) riskScore += 30;
   if (isDiabetic) riskScore += 10;
   if (previousInterventions > 0) riskScore += 15;
+  if (isCVC) riskScore += 15; // CVCs inherently have higher complication risk
 
   // Cap at 95%
   riskScore = Math.min(riskScore, 95);
@@ -43,10 +48,12 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
   }
 
   // Calculate simulated SHAP percentage impact
-  const totalFactors = riskScore - 15; // subtracting base risk
+  let totalFactors = riskScore - 15; // subtracting base risk
+  if (isCVC) totalFactors -= 15; // base risk for CVC
+
   const pvImpact = venousPressure > 150 ? (venousPressure > 200 ? 45 : 25) : 0;
   const bfImpact = bloodFlow < 300 ? 30 : 0;
-  const clinicalImpact = (isDiabetic ? 10 : 0) + (previousInterventions > 0 ? 15 : 0);
+  const clinicalImpact = (isDiabetic ? 10 : 0) + (previousInterventions > 0 ? 15 : 0) + (isCVC ? 15 : 0);
 
   return (
     <Card className="bg-[#0a0a0a] border-white/5 shadow-2xl mt-4 overflow-hidden relative">
@@ -59,10 +66,10 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <CardTitle className={`text-[11px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 ${colorClass}`}>
-              <GitBranch size={16} /> Predictor de Supervivencia de Acceso Vascular (LSTM-Surv)
+              <GitBranch size={16} /> Predictor IA de {isCVC ? 'Disfunción' : 'Supervivencia'} de Acceso Vascular (LSTM-Surv)
             </CardTitle>
             <CardDescription className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground/70 flex items-center gap-2">
-              <Share2 size={10} /> Análisis de Redes Neuronales sobre variables hemodinámicas y clínicas
+              <Share2 size={10} /> {accessType} en {accessLocation}
             </CardDescription>
           </div>
           <Badge className={`${bgClass} ${colorClass} border h-5 px-2 text-[9px] font-bold uppercase tracking-widest`}>
@@ -77,7 +84,9 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
           {/* Main Risk Score & Time to Event */}
           <div className="md:col-span-3 flex flex-col gap-4">
             <div className="flex flex-col justify-center items-center p-4 bg-[#111] border border-white/5 rounded-lg flex-1">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground text-center mb-2">Prob. Trombosis (30D)</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground text-center mb-2">
+                Prob. {isCVC ? 'Disfunción/Infección' : 'Trombosis'} (30D)
+              </span>
               <div className="relative flex items-center justify-center">
                  <svg className="w-24 h-24 transform -rotate-90">
                    <circle
@@ -105,7 +114,7 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
                    <span className={`text-2xl font-mono font-bold ${colorClass}`}>{riskScore}%</span>
                  </div>
               </div>
-              <span className="text-[8px] font-mono text-muted-foreground/50 mt-2">Confianza Modelo: 91.4%</span>
+              <span className="text-[8px] font-mono text-muted-foreground/50 mt-2">Confianza Modelo: {isCVC ? '87.2%' : '91.4%'}</span>
             </div>
             
             <div className={`p-3 rounded-lg border ${bgClass} flex flex-col items-center justify-center`}>
@@ -163,7 +172,7 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
             </div>
             
             <p className="text-[8px] text-muted-foreground/60 leading-tight mt-2 italic">
-              Los valores SHAP estiman la contribución marginal de cada variable al riesgo total. Una Presión Venosa prolongada mayor a 150 mmHg a Qb 300 ml/min incrementa no linealmente la probabilidad de estenosis funcional.
+              Los valores SHAP estiman la contribución marginal de cada variable al riesgo total. {isCVC ? 'En catéteres, un Qb bajo y presiones venosas altas elevan la probabilidad de disfunción por trombo o recubrimiento fibrinoso.' : 'Una Presión Venosa prolongada mayor a 150 mmHg a Qb 300 ml/min incrementa no linealmente la probabilidad de estenosis funcional.'}
             </p>
           </div>
 
@@ -176,7 +185,7 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
                  <div className="flex gap-2">
                    <Target className="text-rose-400 shrink-0" size={14} />
                    <p className="text-[10px] font-medium text-rose-300 leading-relaxed">
-                     El modelo detecta una combinación crítica: alta PV + bajo Qb. <strong>Alta probabilidad de estenosis de tracto de salida no tratada.</strong>
+                     El modelo detecta una combinación crítica: alta PV + bajo Qb. <strong>Alta probabilidad de {isCVC ? 'disfunción de catéter o fibrina' : 'estenosis de tracto de salida no tratada'}.</strong>
                    </p>
                  </div>
                  <div className="bg-black/40 p-3 rounded-md border border-rose-500/10 mt-auto">
@@ -184,11 +193,11 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
                    <ul className="text-[9px] text-rose-300/90 space-y-2">
                      <li className="flex items-start gap-1.5">
                        <span className="shrink-0 leading-none mt-0.5">•</span>
-                       <span>Incrementar el Qa (Flujo Acceso) estimado vía Doppler reduciría el riesgo en -40%.</span>
+                       <span>Incrementar el Qa (Flujo Acceso) reduciría el riesgo en -40%. {isCVC ? 'Considerar urocinasa.' : ''}</span>
                      </li>
                      <li className="flex items-start gap-1.5">
                        <span className="shrink-0 leading-none mt-0.5">•</span>
-                       <span>Bajar el Qb actual no mejorará la supervivencia sin angioplastia previa.</span>
+                       <span>Bajar el Qb actual no mejorará la supervivencia sin intervención previa.</span>
                      </li>
                    </ul>
                  </div>
