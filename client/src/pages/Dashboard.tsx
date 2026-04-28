@@ -61,12 +61,12 @@ export default function Dashboard() {
 
   // Find a critical patient for the top alert card
   const criticalPatient = patients.find(
-    (p) => p.currentReading?.riskScore >= 65 || p.phase === "hid",
+    (p) => p.currentReading?.riskScore >= 65 || p.currentReading?.idhtRiskScore >= 65 || p.phase === "hid" || p.currentReading?.idhtEvent === 1,
   );
 
   // Simulate active AI interventions based on early warning (Kim et al.)
   const aiInterventions = patients.filter((patient) => {
-    return patient.currentReading?.riskScore >= 45;
+    return patient.currentReading?.riskScore >= 45 || patient.currentReading?.idhtRiskScore >= 45;
   });
 
   return (

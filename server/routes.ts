@@ -55,8 +55,8 @@ export function registerRoutes(app: Express) {
       active: patients.length,
       hidActive: activePatients.filter(a => a.state.phase === "hid").length,
       idhtActive: activePatients.filter(a => a.state.idhtPhase === "idht").length,
-      highRisk: activePatients.filter(a => a.lastReading && a.lastReading.riskScore >= 45).length,
-      alerts: activePatients.filter(a => a.lastReading && a.lastReading.riskScore >= 65).length
+      highRisk: activePatients.filter(a => a.lastReading && (a.lastReading.riskScore >= 45 || a.lastReading.idhtRiskScore >= 45)).length,
+      alerts: activePatients.filter(a => a.lastReading && (a.lastReading.riskScore >= 65 || a.lastReading.idhtRiskScore >= 65 || a.state.phase === "hid" || a.lastReading.idhtEvent === 1)).length
     };
     res.json(stats);
   });

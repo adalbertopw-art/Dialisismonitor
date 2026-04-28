@@ -34,13 +34,15 @@ export function AlertsDialog() {
   const getFilteredPatients = () => {
     if (alertFilter === "all") return patients;
     if (alertFilter === "hid") return patients.filter(p => p.phase === "hid");
-    if (alertFilter === "idht") return patients.filter(p => (p.currentReading?.sbp || 0) > 160);
-    if (alertFilter === "highRisk") return patients.filter(p => (p.currentReading?.riskScore || 0) >= 45 || p.currentReading?.riskCategory === "alto" || p.currentReading?.riskCategory === "muy alto");
+    if (alertFilter === "idht") return patients.filter(p => p.currentReading?.idhtEvent === 1);
+    if (alertFilter === "highRisk") return patients.filter(p => (p.currentReading?.riskScore || 0) >= 45 || (p.currentReading?.idhtRiskScore || 0) >= 45 || p.currentReading?.riskCategory === "alto" || p.currentReading?.riskCategory === "muy alto");
     // "alerts" default
     return patients.filter(
       (p) =>
         (p.currentReading?.riskScore || 0) >= 65 ||
+        (p.currentReading?.idhtRiskScore || 0) >= 65 ||
         p.phase === "hid" ||
+        p.currentReading?.idhtEvent === 1 ||
         p.currentReading?.sbp < 100
     );
   };
