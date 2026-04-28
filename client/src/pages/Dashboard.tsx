@@ -14,20 +14,15 @@ import {
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
+import { PopulationRiskBoard } from "@/components/PopulationRiskBoard";
 
 export default function Dashboard() {
   const [time, setTime] = useState(new Date());
+  const [activeTab, setActiveTab] = useState("monitor");
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -124,9 +119,37 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Top Section Stats */}
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12 lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-4">
+      {/* Tabs Navigation */}
+      <div className="flex gap-2 overflow-x-auto custom-scrollbar mb-6 pb-1">
+        <button
+           onClick={() => setActiveTab("monitor")}
+           className={cn(
+             "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
+             activeTab === "monitor"
+               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+               : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5"
+           )}
+        >
+           Monitor en Vivo
+        </button>
+        <button
+           onClick={() => setActiveTab("triage")}
+           className={cn(
+             "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
+             activeTab === "triage"
+               ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+               : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5"
+           )}
+        >
+           Triage Poblacional
+        </button>
+      </div>
+
+      {activeTab === "monitor" && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {/* Top Section Stats */}
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-12 lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div
              className="cursor-pointer transition-transform active:scale-95"
              onClick={() => openAlertsDialog("all")}
@@ -534,6 +557,14 @@ export default function Dashboard() {
           </Table>
         </div>
       </Card>
+      </div>
+      )}
+
+      {activeTab === "triage" && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <PopulationRiskBoard patients={patients} />
+        </div>
+      )}
 
       <footer className="flex justify-between items-center text-[10px] text-muted-foreground uppercase font-bold tracking-widest pt-4 border-t border-border/20">
         <div>

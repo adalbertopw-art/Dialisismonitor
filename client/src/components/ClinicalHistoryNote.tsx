@@ -85,22 +85,22 @@ Plan:
   // Mock history data with more detail
   const historyNotes = [
     { 
-      date: "10 Oct 2024", 
+      date: "18 Abr 2026", 
       session: "Sesión 142",
       stats: { uf: "2.1 L", preWeight: "70.5 kg", postWeight: "68.4 kg", avgBP: "135/82 mmHg", ktv: "1.32" },
       note: "Paciente cursa sesión sin complicaciones hemodinámicas. Toleró meta de UF de 2.1L. Flujos de acceso vascular adecuados. Examen físico post-diálisis sin edemas.",
       trendData: [ { time: '0h', sys: 140 }, { time: '1h', sys: 135 }, { time: '2h', sys: 130 }, { time: '3h', sys: 132 }, { time: '4h', sys: 128 } ]
     },
     { 
-      date: "8 Oct 2024", 
-      session: "Sesión 141",
+      date: "15 Ene 2026", 
+      session: "Sesión 103",
       stats: { uf: "2.8 L", preWeight: "71.2 kg", postWeight: "68.4 kg", avgBP: "110/65 mmHg", ktv: "1.28" },
       note: "Sesión con episodios de hipotensión (90/55) en la hora 3. Se administró bolo de ssN 150cc y se ajustó perfil de sodio. Se sugiere reevaluar peso seco.",
       trendData: [ { time: '0h', sys: 130 }, { time: '1h', sys: 120 }, { time: '2h', sys: 105 }, { time: '3h', sys: 90 }, { time: '4h', sys: 110 } ]
     },
     { 
-      date: "5 Oct 2024", 
-      session: "Sesión 140",
+      date: "12 Nov 2025", 
+      session: "Sesión 75",
       stats: { uf: "1.9 L", preWeight: "70.3 kg", postWeight: "68.4 kg", avgBP: "142/85 mmHg", ktv: "1.35" },
       note: "Sesión habitual sin eventualidades. Ultrafiltración según meta. Laboratorios de control tomados, pendiente revisión en próxima consulta.",
       trendData: [ { time: '0h', sys: 145 }, { time: '1h', sys: 142 }, { time: '2h', sys: 138 }, { time: '3h', sys: 140 }, { time: '4h', sys: 135 } ]

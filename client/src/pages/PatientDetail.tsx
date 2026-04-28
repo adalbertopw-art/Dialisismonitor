@@ -58,8 +58,11 @@ import { BioimpedancePhenotype } from "@/components/BioimpedancePhenotype";
 import { ClosedLoopBiofeedback } from "@/components/ClosedLoopBiofeedback";
 import { SodiumUFProfile } from "@/components/SodiumUFProfile";
 import { BodyCompositionChart } from "@/components/BodyCompositionChart";
+import { DryWeightOptimizer } from "@/components/DryWeightOptimizer";
+import { AnemiaManager } from "@/components/AnemiaManager";
 import { AVFThrombosisPredictor } from "@/components/AVFThrombosisPredictor";
 import { SBARNoteGenerator } from "@/components/SBARNoteGenerator";
+import { NursingNotesMiner } from "@/components/NursingNotesMiner";
 import { ClinicalHistoryNote } from "@/components/ClinicalHistoryNote";
 import { AIReasoningTerminal } from "@/components/AIReasoningTerminal";
 import { PatientClinicalSummary } from "@/components/PatientClinicalSummary";
@@ -76,6 +79,22 @@ export default function PatientDetail() {
   >(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const [isInfoExpanded, setIsInfoExpanded] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const mainContainer = document.querySelector("main");
+    if (!mainContainer) return;
+
+    const handleScroll = () => {
+      setIsScrolled(mainContainer.scrollTop > 80);
+    };
+    
+    // Check initial position
+    handleScroll();
+
+    mainContainer.addEventListener("scroll", handleScroll);
+    return () => mainContainer.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     if (!isSimulating) {
@@ -266,13 +285,13 @@ export default function PatientDetail() {
 
   return (
     <div
-      className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto pb-10"
+      className="space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto pb-10 relative"
       ref={detailRef}
     >
       <AudioAlarm riskScore={lastReading.riskScore || 0} />
 
       {/* Header Compacto y Moderno */}
-      <header className="sticky top-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/10 -mx-4 px-4 md:-mx-8 md:px-8 py-2 md:py-3 transition-all">
+      <header className="bg-transparent -mx-4 px-4 md:-mx-8 md:px-8 py-2 md:py-3 mb-2">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link href="/">
@@ -417,6 +436,38 @@ export default function PatientDetail() {
         )}
       </header>
 
+      {/* Floating Pill when scrolled */}
+      <div 
+        className={cn(
+          "fixed top-4 left-1/2 -translate-x-1/2 z-[100] transition-all duration-300 pointer-events-none",
+          isScrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+        )}
+      >
+        <div className={cn("flex items-center gap-3 bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 rounded-full px-4 py-2 shadow-2xl", isScrolled ? "pointer-events-auto" : "pointer-events-none")}>
+          <Link href="/">
+            <div className="flex items-center justify-center h-6 w-6 rounded-full bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all cursor-pointer">
+              <ArrowLeft size={12} />
+            </div>
+          </Link>
+          <span className="text-sm font-bold tracking-tight text-white/90 whitespace-nowrap">
+            {patient.name}
+          </span>
+          <div className="flex flex-col items-start px-2 border-l border-white/10">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 leading-none">
+              {patient.bed} · {patient.age}a
+            </span>
+          </div>
+          {lastReading.phase !== "stable" && (
+            <Badge
+              variant="outline"
+              className="text-[8px] h-4 font-bold uppercase tracking-widest bg-blue-500/5 text-blue-400 border-blue-500/20 px-1.5"
+            >
+              Recup.
+            </Badge>
+          )}
+        </div>
+      </div>
+
       {/* Información Detallada del Paciente (Collapsible) */}
       <div className="bg-[#111] border border-white/5 rounded-lg shadow-sm mx-0 md:mx-0">
         <button
@@ -516,14 +567,14 @@ export default function PatientDetail() {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex bg-[#111] p-1 rounded-lg border border-white/5 shadow-2xl overflow-x-auto custom-scrollbar sticky top-[60px] md:top-[76px] z-40 my-4">
+      <div className="flex gap-2 overflow-x-auto custom-scrollbar my-4 pb-1">
         <button
           onClick={() => setActiveTab("monitor")}
           className={cn(
-            "flex-1 md:flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-md transition-all whitespace-nowrap",
+            "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
             activeTab === "monitor"
-              ? "bg-emerald-500/20 text-emerald-400"
-              : "text-muted-foreground hover:text-white hover:bg-white/5",
+              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+              : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5",
           )}
         >
           Monitor en Vivo
@@ -531,10 +582,10 @@ export default function PatientDetail() {
         <button
           onClick={() => setActiveTab("laboratorios")}
           className={cn(
-            "flex-1 md:flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-md transition-all whitespace-nowrap",
+            "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
             activeTab === "laboratorios"
-              ? "bg-sky-500/20 text-sky-400"
-              : "text-muted-foreground hover:text-white hover:bg-white/5",
+              ? "bg-sky-500/10 text-sky-400 border-sky-500/20"
+              : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5",
           )}
         >
           Labs y Prescripción
@@ -542,10 +593,10 @@ export default function PatientDetail() {
         <button
           onClick={() => setActiveTab("historial")}
           className={cn(
-            "flex-1 md:flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-md transition-all whitespace-nowrap",
+            "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
             activeTab === "historial"
-              ? "bg-amber-500/20 text-amber-400"
-              : "text-muted-foreground hover:text-white hover:bg-white/5",
+              ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+              : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5",
           )}
         >
           Historial y Evolución
@@ -553,10 +604,10 @@ export default function PatientDetail() {
         <button
           onClick={() => setActiveTab("vascular")}
           className={cn(
-            "flex-1 md:flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-md transition-all whitespace-nowrap",
+            "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
             activeTab === "vascular"
-              ? "bg-rose-500/20 text-rose-400"
-              : "text-muted-foreground hover:text-white hover:bg-white/5",
+              ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+              : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5",
           )}
         >
           Acceso Vascular
@@ -645,7 +696,7 @@ export default function PatientDetail() {
                   (Horizonte 60 min)
                 </h3>
                 <p className="text-[10px] text-muted-foreground/60 font-bold uppercase">
-                  Modelo híbrido XGBoost + LSTM (AUROC 0.89) · Piccoli NDT 2023
+                  Modelo Deep Learning Transformer + TCN (AUROC 0.94) · Yang AJKD 2024
                   · Explicabilidad SHAP
                 </p>
               </div>
@@ -1353,7 +1404,8 @@ export default function PatientDetail() {
 
       {activeTab === "laboratorios" && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <DryWeightOptimizer patient={patient} />
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <Card className="bg-[#111] border-white/5">
               <CardHeader className="py-3 px-4 border-b border-white/5">
                 <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
@@ -1369,12 +1421,27 @@ export default function PatientDetail() {
                   value={patient.etiology || "-"}
                 />
                 <SimpleRow
+                  label="Disf. Autonómica"
+                  value={patient.autonomicDysfunction ? "Sí" : "No"}
+                  highlight={!!patient.autonomicDysfunction}
+                />
+                <SimpleRow
+                  label="Fracción Eyección"
+                  value={patient.ejectionFraction ? `${patient.ejectionFraction}%` : "-"}
+                  highlight={patient.ejectionFraction ? patient.ejectionFraction < 50 : false}
+                />
+                <SimpleRow
+                  label="Lista Trasplante"
+                  value={patient.transplantList ? "Activo" : "No"}
+                />
+                <SimpleRow
                   label="Peso seco"
                   value={`${patient.dryWeight} kg`}
                 />
                 <SimpleRow
                   label="IMC aprox."
                   value={`${(patient.dryWeight / 1.75 ** 2).toFixed(1)} kg/m²`}
+                  highlight={(patient.dryWeight / 1.75 ** 2) < 21}
                 />
                 <SimpleRow
                   label="Vintage HD"
@@ -1426,6 +1493,46 @@ export default function PatientDetail() {
             <Card className="bg-[#111] border-white/5">
               <CardHeader className="py-3 px-4 border-b border-white/5">
                 <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
+                  <Activity size={14} className="text-violet-400" /> Biomarcadores
+                  Avanzados
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="py-4 space-y-2">
+                <SimpleRow
+                  label="BNP"
+                  value={`${patient.historicalLabs?.[0]?.bnp || '?'} pg/mL`}
+                  highlight={(patient.historicalLabs?.[0]?.bnp || 0) > 300}
+                />
+                <SimpleRow
+                  label="Troponina T"
+                  value={`${patient.historicalLabs?.[0]?.tnt || '?'} ng/L`}
+                  highlight={(patient.historicalLabs?.[0]?.tnt || 0) > 14}
+                />
+                <SimpleRow
+                  label="Proteína C Reactiva"
+                  value={`${patient.historicalLabs?.[0]?.pcr || '?'} mg/dL`}
+                  highlight={(patient.historicalLabs?.[0]?.pcr || 0) > 1.0}
+                />
+                <SimpleRow
+                  label="Ferritina"
+                  value={`${patient.historicalLabs?.[0]?.ferritin || '?'} ng/mL`}
+                  highlight={(patient.historicalLabs?.[0]?.ferritin || 0) > 500}
+                />
+                <SimpleRow
+                  label="Sat. Transferrina"
+                  value={`${patient.historicalLabs?.[0]?.tsat || '?'} %`}
+                  highlight={(patient.historicalLabs?.[0]?.tsat || 30) < 20}
+                />
+                <SimpleRow
+                  label="BUN Pre/Post"
+                  value={`${patient.historicalLabs?.[0]?.bunPre || '?'}/${patient.historicalLabs?.[0]?.bunPost || '?'} mg/dL`}
+                />
+              </CardContent>
+            </Card>
+
+            <Card className="bg-[#111] border-white/5">
+              <CardHeader className="py-3 px-4 border-b border-white/5">
+                <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
                   <Settings size={14} className="text-amber-400" /> Prescripción
                   HD
                 </CardTitle>
@@ -1455,6 +1562,7 @@ export default function PatientDetail() {
             </Card>
           </div>
 
+          <AnemiaManager patient={patient} />
           <PatientClinicalSummary patient={patient} />
           <BioimpedancePhenotype patient={patient} lastReading={lastReading} />
           <BodyCompositionChart patient={patient} lastReading={lastReading} />
@@ -1463,6 +1571,7 @@ export default function PatientDetail() {
 
       {activeTab === "historial" && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <NursingNotesMiner patient={patient} />
           <SBARNoteGenerator
             patient={patient}
             lastReading={lastReading}

@@ -110,6 +110,13 @@ export function initSimulator() {
         pth: Math.floor(200 + Math.random() * 300),
         potassium: Number((4.5 + Math.random() * 1).toFixed(1)),
         spKtv: Number((1.2 + Math.random() * 0.4).toFixed(2)),
+        bnp: Math.floor(100 + Math.random() * 400),
+        tnt: Math.floor(10 + Math.random() * 50),
+        pcr: Number((0.5 + Math.random() * 3).toFixed(1)),
+        ferritin: Math.floor(200 + Math.random() * 600),
+        tsat: Math.floor(20 + Math.random() * 30),
+        bunPre: Math.floor(50 + Math.random() * 40),
+        bunPost: Math.floor(15 + Math.random() * 15),
       });
     }
     return labs;
@@ -147,12 +154,19 @@ export function initSimulator() {
     const locIndex = isGraftOrCvc && vascularAccessType === "CVC Tunelizado" ? 2 + Math.floor(Math.random() * 2) : Math.floor(Math.random() * 2);
     const vascularAccessLocation = locations[locIndex];
 
+    const ejectionFraction = profile.cardiopathy ? 35 + Math.floor(Math.random() * 20) : 55 + Math.floor(Math.random() * 15);
+    const transplantList = profile.age < 65 && !profile.cardiopathy && Math.random() > 0.5 ? 1 : 0;
+    const autonomicDysfunction = profile.diabetic && profile.dialysisVintage > 36 && Math.random() > 0.5 ? 1 : 0;
+
     const patient: Patient = { 
       id, 
       ...profile,
       etiology,
       vascularAccessType,
       vascularAccessLocation,
+      ejectionFraction,
+      transplantList,
+      autonomicDysfunction,
       historicalLabs: generateMockLabs(),
       medications: generateMockMedications(profile.diabetic, profile.cardiopathy)
     } as any;

@@ -7,6 +7,13 @@ export interface HistoricalLab {
   pth: number;
   potassium: number;
   spKtv: number;
+  bnp?: number;
+  tnt?: number;
+  pcr?: number;
+  ferritin?: number;
+  tsat?: number;
+  bunPre?: number;
+  bunPost?: number;
 }
 
 export interface Medication {
@@ -31,6 +38,9 @@ export interface Patient {
   etiology?: string;
   vascularAccessType?: string;
   vascularAccessLocation?: string;
+  ejectionFraction?: number;
+  transplantList?: number;
+  autonomicDysfunction?: number;
   targetUfVolume: number;
   sessionDuration: number;
   bloodFlowRate: number;
