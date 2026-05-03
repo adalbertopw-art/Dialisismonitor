@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { PopulationRiskBoard } from "@/components/PopulationRiskBoard";
+import { IntegrationFlow } from "@/components/IntegrationFlow";
 
 export default function Dashboard() {
   const [time, setTime] = useState(new Date());
@@ -142,6 +143,17 @@ export default function Dashboard() {
            )}
         >
            Triage Poblacional
+        </button>
+        <button
+           onClick={() => setActiveTab("arquitectura")}
+           className={cn(
+             "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
+             activeTab === "arquitectura"
+               ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+               : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5"
+           )}
+        >
+           Flujo de Datos y HL7 (Demo)
         </button>
       </div>
 
@@ -566,13 +578,20 @@ export default function Dashboard() {
         </div>
       )}
 
+      {activeTab === "arquitectura" && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <IntegrationFlow />
+        </div>
+      )}
+
       <footer className="flex justify-between items-center text-[10px] text-muted-foreground uppercase font-bold tracking-widest pt-4 border-t border-border/20">
         <div>
           Actualización automática cada 3 s · Motor predictivo: Kim 2021 · Yang
           2024 · Marcos 2024 · KDOQI 2015
         </div>
         <div className="flex items-center gap-1">
-          Solo uso educativo y de simulación clínica
+          <span>Solo uso educativo y de simulación clínica</span>
+          <span className="mx-2 px-2 border-l border-border/20">Desarrollado por Adalberto Peña W</span>
         </div>
       </footer>
     </div>

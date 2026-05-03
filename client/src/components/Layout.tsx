@@ -19,6 +19,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [location] = useLocation();
 
+  const [aiAutopilot, setAiAutopilot] = useState(() => {
+    try {
+      const val = localStorage.getItem("hd_ai_autopilot");
+      if (val !== null) return JSON.parse(val);
+    } catch {}
+    return false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("hd_ai_autopilot", JSON.stringify(aiAutopilot));
+    // Optional: dispatch an event so other components know if needed
+    window.dispatchEvent(new CustomEvent('ai_autopilot_changed', { detail: { active: aiAutopilot } }));
+  }, [aiAutopilot]);
+
   const { data: stats } = useQuery<DashboardStats>({
     queryKey: ["/api/stats"],
     refetchInterval: 3000
@@ -54,17 +68,44 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <nav className="flex-1 p-2 space-y-1">
-          <Link 
-            href="/"
-            className={cn(
-              "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all font-bold text-sm",
-              location === "/" ? "bg-[#0ea5e9] text-white shadow-[0_0_15px_rgba(14,165,233,0.3)]" : "text-muted-foreground hover:bg-secondary hover:text-white"
-            )}
-          >
-            <LayoutDashboard size={18} />
-            {!collapsed && <span>Dashboard</span>}
-          </Link>
+        <nav className="flex-1 p-2 space-y-4">
+          <div className="space-y-1">
+            <Link 
+              href="/"
+              className={cn(
+                "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all font-bold text-sm",
+                location === "/" ? "bg-[#0ea5e9] text-white shadow-[0_0_15px_rgba(14,165,233,0.3)]" : "text-muted-foreground hover:bg-secondary hover:text-white"
+              )}
+            >
+              <LayoutDashboard size={18} />
+              {!collapsed && <span>Dashboard</span>}
+            </Link>
+          </div>
+
+          {!collapsed && (
+            <div className="mx-2 mt-8 p-3 bg-[#111] border border-white/5 rounded-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-rose-400">
+                  <Database size={16} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Intervención IA</span>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-tight">
+                {aiAutopilot ? "Las recomendaciones se aplican de forma automática." : "El médico debe aprobar manualmente cada recomendación."}
+              </p>
+              <button 
+                onClick={() => setAiAutopilot(!aiAutopilot)}
+                className={cn(
+                  "w-full py-2 px-3 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm border flex items-center justify-center gap-2",
+                  aiAutopilot 
+                    ? "bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500/20" 
+                    : "bg-white/5 text-muted-foreground border-white/10 hover:bg-white/10"
+                )}
+              >
+                {aiAutopilot ? "Autopilot: Activo" : "Requiere Aprobación"}
+              </button>
+            </div>
+          )}
         </nav>
 
         {/* Stats and Info - ESTADO DEL PISO */}

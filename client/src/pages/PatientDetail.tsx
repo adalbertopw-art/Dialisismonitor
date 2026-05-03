@@ -20,6 +20,8 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
+  Bot,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,6 +60,7 @@ import { BioimpedancePhenotype } from "@/components/BioimpedancePhenotype";
 import { ClosedLoopBiofeedback } from "@/components/ClosedLoopBiofeedback";
 import { SodiumUFProfile } from "@/components/SodiumUFProfile";
 import { BodyCompositionChart } from "@/components/BodyCompositionChart";
+import { AIRecommendationsPanel } from "@/components/AIRecommendationsPanel";
 import { DryWeightOptimizer } from "@/components/DryWeightOptimizer";
 import { AnemiaManager } from "@/components/AnemiaManager";
 import { AVFThrombosisPredictor } from "@/components/AVFThrombosisPredictor";
@@ -66,6 +69,8 @@ import { NursingNotesMiner } from "@/components/NursingNotesMiner";
 import { ClinicalHistoryNote } from "@/components/ClinicalHistoryNote";
 import { AIReasoningTerminal } from "@/components/AIReasoningTerminal";
 import { PatientClinicalSummary } from "@/components/PatientClinicalSummary";
+import { MachineTelemetryDashboard } from "@/components/MachineTelemetryDashboard";
+import { SessionSummary } from "@/components/SessionSummary";
 
 export default function PatientDetail() {
   const params = useParams<{ id: string }>();
@@ -80,6 +85,25 @@ export default function PatientDetail() {
   const [isSimulating, setIsSimulating] = useState(false);
   const [isInfoExpanded, setIsInfoExpanded] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [processedRecommendations, setProcessedRecommendations] = useState<Set<string>>(new Set());
+  const [uiUfrReduction, setUiUfrReduction] = useState<number>(0);
+  const [uiTimeExtension, setUiTimeExtension] = useState<number>(0);
+
+  const [aiAutopilot, setAiAutopilot] = useState(() => {
+    try {
+      const val = localStorage.getItem("hd_ai_autopilot");
+      if (val !== null) return JSON.parse(val);
+    } catch {}
+    return false;
+  });
+
+  useEffect(() => {
+    const handleAutopilotChanged = (e: any) => {
+      setAiAutopilot(e.detail.active);
+    };
+    window.addEventListener('ai_autopilot_changed', handleAutopilotChanged);
+    return () => window.removeEventListener('ai_autopilot_changed', handleAutopilotChanged);
+  }, []);
 
   useEffect(() => {
     const mainContainer = document.querySelector("main");
@@ -160,6 +184,55 @@ export default function PatientDetail() {
     }
   }, [isSimulating, detail?.readings, simulatedReadings]);
 
+  const activeReadings = simulatedReadings || detail?.readings || [];
+  const lastReading: any = activeReadings[activeReadings.length - 1] || {};
+
+  const currentRecommendations = useMemo(() => {
+    if (!lastReading || !lastReading.riskScore) return [];
+    
+    let recs: any[] = [];
+    if (lastReading.riskScore >= 65 || lastReading.sbp < 100) {
+      if (!processedRecommendations.has("uf-decrease-crit")) {
+        recs.push({
+          id: "uf-decrease-crit",
+          type: "uf",
+          title: "Pausa/Reducción Crítica UF",
+          description: "Caída severa de PAS detectada. Minimizar estrés hemodinámico.",
+          value: "Bajar a 50 ml/h (o pausar)"
+        });
+      }
+      if (!processedRecommendations.has("temp-decrease-crit")) {
+        recs.push({
+          id: "temp-decrease-crit",
+          type: "temp",
+          title: "Enfriamiento de Dializado",
+          description: "Reflejo de volumen simpático y resistencia vascular compensatoria.",
+          value: "Bajar 0.5°C a 35.5°C"
+        });
+      }
+    } else if (lastReading.riskScore >= 45) {
+      if (!processedRecommendations.has("uf-decrease-mod")) {
+        recs.push({
+          id: "uf-decrease-mod",
+          type: "uf",
+          title: "Ajuste Preventivo UF",
+          description: "Riesgo moderado a alto de IDH según trayectoria TCN LSTM.",
+          value: "Reducir un 25% la tasa actual"
+        });
+      }
+      if (!processedRecommendations.has("time-extend-mod")) {
+        recs.push({
+          id: "time-extend-mod",
+          type: "time",
+          title: "Extender Sesión",
+          description: "Permite alcanzar volumen objetivo con menor tasa UF.",
+          value: "+30 min a la sesión"
+        });
+      }
+    }
+    return recs;
+  }, [lastReading?.riskScore, lastReading?.sbp, processedRecommendations]);
+
   if (isLoading || !detail) {
     return (
       <div className="p-8 space-y-4 shadow-sm">
@@ -171,14 +244,25 @@ export default function PatientDetail() {
 
   const patient = detail.patient;
 
-  const activeReadings = simulatedReadings || detail.readings;
   const readings = activeReadings;
-  const lastReading: any = activeReadings[activeReadings.length - 1] || {};
 
+  const handleAcceptRecommendation = (id: string) => {
+    setProcessedRecommendations(prev => new Set(prev).add(id));
+    if (id === "uf-decrease-crit") setUiUfrReduction(50); // represents percentage drop or absolute? let's make it percent
+    if (id === "uf-decrease-mod") setUiUfrReduction(25);
+    if (id === "time-extend-mod") setUiTimeExtension(0.5); // hours
+  };
+
+  const handleRejectRecommendation = (id: string) => {
+    setProcessedRecommendations(prev => new Set(prev).add(id));
+  };
+
+  const currentEffectivePhase = lastReading.idhtEvent === 1 ? "idht" : lastReading.phase || "stable";
   const predictiveHorizon = generatePredictiveHorizon(
     readings,
-    lastReading.phase || "stable",
+    currentEffectivePhase,
     patient,
+    uiUfrReduction
   );
   const predictiveLog = readings
     .slice(-30)
@@ -214,6 +298,19 @@ export default function PatientDetail() {
         : "Normal";
   const idhtRiskStatusLabel =
     lastReading.idhtEvent === 1 ? "Crítico" : "Normal";
+
+  const originalUfr = (patient.targetUfVolume * 1000) / (patient.sessionDuration * patient.dryWeight);
+  const currentUfr = originalUfr * ((100 - uiUfrReduction) / 100);
+  const targetDurationHours = patient.sessionDuration + uiTimeExtension;
+  const timeRemainingHours = Math.max(0, targetDurationHours - (lastReading?.minuteOfSession || 0) / 60);
+  
+  const projectedUfRemoved = (lastReading?.ufRemoved || 0) + (currentUfr * patient.dryWeight * timeRemainingHours) / 1000;
+  
+  const ufDeficit = Math.max(0, patient.targetUfVolume - projectedUfRemoved);
+  const ufDeficitPercent = (ufDeficit / patient.targetUfVolume) * 100;
+  
+  const isCompleting = ufDeficit <= 0.05;
+  const projectedPercent = Math.min(100, (projectedUfRemoved / patient.targetUfVolume) * 100);
 
   const handleExport = async () => {
     if (!detailRef.current) return;
@@ -302,8 +399,17 @@ export default function PatientDetail() {
 
             <div className="flex flex-col">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-base md:text-xl font-bold tracking-tight text-white/90">
+                <h2 className="text-base md:text-xl font-bold tracking-tight text-white/90 flex items-center gap-2">
                   {patient.name}
+                  <div className={cn(
+                    "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[9px] uppercase tracking-widest ml-2",
+                    aiAutopilot 
+                      ? "bg-rose-500/10 text-rose-400 border-rose-500/20" 
+                      : "bg-sky-500/10 text-sky-400 border-sky-500/20"
+                  )}>
+                    {aiAutopilot ? <Bot size={12} /> : <ShieldCheck size={12} />}
+                    {aiAutopilot ? "Autopilot" : "Recomendación"}
+                  </div>
                 </h2>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {isSimulating && (
@@ -449,8 +555,17 @@ export default function PatientDetail() {
               <ArrowLeft size={12} />
             </div>
           </Link>
-          <span className="text-sm font-bold tracking-tight text-white/90 whitespace-nowrap">
+          <span className="text-sm font-bold tracking-tight text-white/90 whitespace-nowrap flex items-center gap-2">
             {patient.name}
+            <div className={cn(
+              "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[9px] uppercase tracking-widest",
+              aiAutopilot 
+                ? "bg-rose-500/10 text-rose-400 border-rose-500/20" 
+                : "bg-sky-500/10 text-sky-400 border-sky-500/20"
+            )}>
+              {aiAutopilot ? <Bot size={12} /> : <ShieldCheck size={12} />}
+              <span className="hidden sm:inline">{aiAutopilot ? "Autopilot" : "Recomendación"}</span>
+            </div>
           </span>
           <div className="flex flex-col items-start px-2 border-l border-white/10">
             <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 leading-none">
@@ -612,6 +727,17 @@ export default function PatientDetail() {
         >
           Acceso Vascular
         </button>
+        <button
+          onClick={() => setActiveTab("maquina")}
+          className={cn(
+            "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
+            activeTab === "maquina"
+              ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+              : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5",
+          )}
+        >
+          Máquina / Filtro
+        </button>
       </div>
 
       {activeTab === "monitor" && (
@@ -708,9 +834,16 @@ export default function PatientDetail() {
                   <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.5)]"></div>
                   Intervención IA
                 </span>
-                <Badge className="bg-rose-500 text-white border-none h-6 px-3 text-[10px] font-black uppercase tracking-widest leading-none">
-                  Riesgo Inminente
-                </Badge>
+                {uiUfrReduction > 0 ? (
+                  <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 h-6 px-3 text-[10px] font-black uppercase tracking-widest leading-none">
+                    <CheckCircle2 size={12} className="mr-1" />
+                    Prevención Activa
+                  </Badge>
+                ) : (
+                  <Badge className="bg-rose-500 text-white border-none h-6 px-3 text-[10px] font-black uppercase tracking-widest leading-none animate-pulse">
+                    Riesgo Inminente
+                  </Badge>
+                )}
               </div>
             </header>
 
@@ -744,6 +877,29 @@ export default function PatientDetail() {
                         position: "left",
                       }}
                     />
+                    <ReferenceLine
+                      y={150}
+                      stroke="#8b5cf6"
+                      strokeDasharray="3 3"
+                      strokeOpacity={0.5}
+                      label={{
+                        value: "Umbral HTA (150mmHg)",
+                        fill: "#8b5cf6",
+                        fontSize: 9,
+                        position: "left",
+                      }}
+                    />
+                    <ReferenceLine
+                      x={lastReading?.minuteOfSession}
+                      stroke="#f59e0b"
+                      strokeDasharray="3 3"
+                      label={{
+                        value: "AHORA",
+                        fill: "#f59e0b",
+                        fontSize: 9,
+                        position: "insideTopLeft",
+                      }}
+                    />
 
                     {/* Historical Area */}
                     <Area
@@ -766,7 +922,25 @@ export default function PatientDetail() {
                       isAnimationActive={false}
                     />
 
-                    {/* Prediction Line */}
+                    {/* Prediction Base Line (What would happen if we didn't intervene) - only show if intervened */}
+                    {uiUfrReduction > 0 && (
+                      <Line
+                        type="monotone"
+                        dataKey="sbpBase"
+                        data={predictiveHorizon.map((p) => ({
+                          minute: lastReading.minuteOfSession + p.minute,
+                          sbpBase: p.sbpBase,
+                        }))}
+                        stroke="#f43f5e"
+                        strokeWidth={2}
+                        strokeDasharray="4 4"
+                        strokeOpacity={0.4}
+                        dot={false}
+                        isAnimationActive={false}
+                      />
+                    )}
+
+                    {/* Prediction Line (Actual prediction considering intervention) */}
                     <Line
                       type="monotone"
                       dataKey="sbp"
@@ -774,7 +948,7 @@ export default function PatientDetail() {
                         minute: lastReading.minuteOfSession + p.minute,
                         sbp: p.sbp,
                       }))}
-                      stroke="#f43f5e"
+                      stroke={uiUfrReduction > 0 ? "#10b981" : "#f43f5e"}
                       strokeWidth={3}
                       strokeDasharray="6 6"
                       dot={(props: any) => {
@@ -790,7 +964,7 @@ export default function PatientDetail() {
                               cy={props.cy}
                               r={4}
                               fill="white"
-                              stroke="#f43f5e"
+                              stroke={uiUfrReduction > 0 ? "#10b981" : "#f43f5e"}
                               strokeWidth={2}
                             />
                           );
@@ -935,6 +1109,12 @@ export default function PatientDetail() {
               entrenado con {">"}2M de sesiones. No reemplaza juicio médico.
             </p>
           </div>
+          
+          <AIRecommendationsPanel 
+            recommendations={currentRecommendations}
+            onAccept={handleAcceptRecommendation}
+            onReject={handleRejectRecommendation}
+          />
 
           {/* UF Projection Section */}
           <Card className="bg-[#0a0a0a] border-emerald-500/10">
@@ -981,7 +1161,7 @@ export default function PatientDetail() {
                     )}
                     %
                   </span>
-                  <span className="text-sky-400">Proyectado fin: 100%</span>
+                  <span className="text-sky-400">Proyectado fin: {Math.round(projectedPercent)}%</span>
                 </div>
               </div>
 
@@ -991,10 +1171,7 @@ export default function PatientDetail() {
                     UFR actual
                   </div>
                   <div className="text-xs font-mono font-bold text-amber-500">
-                    {(
-                      (patient.targetUfVolume * 1000) /
-                      (patient.sessionDuration * patient.dryWeight)
-                    ).toFixed(1)}{" "}
+                    {currentUfr.toFixed(1)}{" "}
                     mL/kg/h
                   </div>
                 </div>
@@ -1002,15 +1179,15 @@ export default function PatientDetail() {
                   <div className="text-[9px] text-muted-foreground uppercase font-bold mb-1">
                     Déficit proyectado
                   </div>
-                  <div className="text-xs font-mono font-bold text-emerald-500">
-                    0.00 L (0%)
+                  <div className={`text-xs font-mono font-bold ${ufDeficit > 0.05 ? "text-amber-500" : "text-emerald-500"}`}>
+                    {ufDeficit.toFixed(2)} L ({Math.round(ufDeficitPercent)}%)
                   </div>
                 </div>
                 <div className="text-center">
                   <div className="text-[9px] text-muted-foreground uppercase font-bold mb-1">
                     ¿Completará?
                   </div>
-                  <div className="text-xs font-bold text-emerald-500">Sí</div>
+                  <div className={`text-xs font-bold ${isCompleting ? "text-emerald-500" : "text-amber-500"}`}>{isCompleting ? "Sí" : "No"}</div>
                 </div>
               </div>
             </CardContent>
@@ -1551,6 +1728,10 @@ export default function PatientDetail() {
                   value={`${patient.bloodFlowRate} mL/min`}
                 />
                 <SimpleRow
+                  label="Filtro / Membrana"
+                  value={["FX CorDiax 80", "Revaclear 400", "Elisio 15H", "Optiflux 160NR", "Polyflux 170H", "Sureflux 190E"][id % 6]}
+                />
+                <SimpleRow
                   label="Temp. dializante"
                   value={`${patient.dialysateTemp} °C`}
                 />
@@ -1571,6 +1752,12 @@ export default function PatientDetail() {
 
       {activeTab === "historial" && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <SessionSummary 
+            patient={patient} 
+            lastReading={lastReading} 
+            isSessionFinished={lastReading.minuteOfSession >= (patient.sessionDuration || 4) * 60 - 1} 
+            aiInterventionsCount={processedRecommendations.size + (aiAutopilot ? 3 : 0)} 
+          />
           <NursingNotesMiner patient={patient} />
           <SBARNoteGenerator
             patient={patient}
@@ -1584,6 +1771,10 @@ export default function PatientDetail() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <AVFThrombosisPredictor patient={patient} lastReading={lastReading} />
         </div>
+      )}
+
+      {activeTab === "maquina" && (
+        <MachineTelemetryDashboard patient={patient} />
       )}
     </div>
   );
@@ -1705,6 +1896,7 @@ function generatePredictiveHorizon(
   readings: any[],
   currentPhase: string,
   patient: any,
+  uiUfrReduction: number = 0,
 ) {
   // Use last 20 points as per Piccoli NDT 2023 evidence
   const last20 = readings.slice(-20);
@@ -1727,26 +1919,39 @@ function generatePredictiveHorizon(
 
   const points = [];
   for (let min = 5; min <= 60; min += 5) {
-    let predictedSbp = smoothedLastSbp + recentSlope * (min / 2);
+    let predictedSbpBase = smoothedLastSbp + recentSlope * (min / 2);
     
     // Factors: IDWG / UFR effect (BestShape Project)
     const ufrRaw = (patient.targetUfVolume * 1000) / (patient.sessionDuration * patient.dryWeight);
-    const ufrImpact = (ufrRaw - 10) * 0.5 * (min / 10);
-    predictedSbp -= Math.max(0, ufrImpact);
+    const ufrImpactBase = (ufrRaw - 10) * 0.5 * (min / 10);
+    predictedSbpBase -= Math.max(0, ufrImpactBase);
     
-    // Integrate AI intervention effects based on RiskScore (Kim et al.)
-    const risk = patient.currentReading?.riskScore || 0;
-    if (risk >= 45) {
-        // AI intervention is active, counteracting the slope gradually
-        predictedSbp += 1.5 * (min / 5); 
-    } else if (currentPhase === "stable") {
-      const target = 130;
-      predictedSbp += (target - predictedSbp) * 0.05 * (min / 10);
+    // Calculate new UFR with intervention
+    const newUfr = ufrRaw * (1 - (uiUfrReduction / 100));
+    
+    let predictedSbpIntervened = smoothedLastSbp + recentSlope * (min / 2);
+    // If we have an active UFR intervention, we relieve the hemodynamic stress over time
+    if (uiUfrReduction > 0) {
+       // The slope reverses as volume is no longer aggressively pulled
+       predictedSbpIntervened += (uiUfrReduction * 0.05) * (min / 5); 
+    } else {
+       // Same old formula if no intervention accepted
+       const ufrImpactBase = (ufrRaw - 10) * 0.5 * (min / 10);
+       predictedSbpIntervened -= Math.max(0, ufrImpactBase);
+       // Hardcoded old AI risk logic inside (which was cheating) we remove to make it accurate to UI
+       if (currentPhase === "stable") {
+         const target = 130;
+         predictedSbpIntervened += (target - predictedSbpIntervened) * 0.05 * (min / 10);
+       } else if (currentPhase === "idht") {
+         // It naturally curves a bit
+         predictedSbpIntervened += (150 - predictedSbpIntervened) * 0.02 * (min / 10);
+       }
     }
     
     points.push({
       minute: min,
-      sbp: Math.round(Math.max(60, Math.min(200, predictedSbp))),
+      sbpBase: Math.round(Math.max(60, Math.min(200, predictedSbpBase))),
+      sbp: Math.round(Math.max(60, Math.min(200, predictedSbpIntervened))),
     });
   }
   return points;

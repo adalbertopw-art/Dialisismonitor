@@ -52,47 +52,91 @@ function ufRate(patient: Patient) {
   return (patient.targetUfVolume * 1000) / (patient.sessionDuration * patient.dryWeight);
 }
 
-function calculateRiskScore(sbp: number, patient: Patient, ufr: number, phase: string): number {
+function calculateRiskScore(sbp: number, hr: number, patient: Patient, ufr: number, phase: string, preSbp: number): number {
   let score = 0;
-  if (sbp < 100) score += 40;
-  else if (sbp < 110) score += 25;
-  else if (sbp < 120) score += 10;
-  if (ufr > 13) score += 20;
-  else if (ufr > 10) score += 12;
+  
+  // EVIDENCIA CLÍNICA (Algoritmos predictivos IDH basados en Kim et al. y Yang 2024)
+  
+  // 1. Dinámica Hemodinámica (Delta SBP y nivel absoluto)
+  // Yang 2024: La caída relativa > 20 mmHg desde el ingreso es un fuerte predictor antes del evento.
+  const deltaSbp = preSbp - sbp;
+  if (sbp < 95) score += 40;
+  else if (sbp < 105) score += 25;
+  else if (sbp < 115) score += 15;
+  
+  if (deltaSbp > 30) score += 20;
+  else if (deltaSbp > 20) score += 12;
+  
+  // Kim 2021: Taquicardia compensatoria (HR > 90) suele preceder o acompañar los descensos de PA
+  if (hr > 95) score += 10;
+  else if (hr > 85) score += 5;
+
+  // 2. Parámetros de Prescripción y Dialítico
+  // KDOQI 2015 / Kim 2021: Tasa de UF > 13 ml/h/kg dispara exponencialmente el riesgo
+  if (ufr > 13) score += 22;
+  else if (ufr > 10) score += 14;
   else if (ufr > 8) score += 6;
-  if (patient.diabetic) score += 10;
-  if (patient.cardiopathy) score += 8;
-  if (patient.albumin < 3.0) score += 12;
-  else if (patient.albumin < 3.5) score += 6;
-  if (patient.age > 70) score += 5;
+
+  // 3. Comorbilidades y Variables Demográficas (Kim 2021)
+  if (patient.diabetic) score += 12;
+  // Disfunción diastólica / cardiopatía limita compensación
+  if (patient.cardiopathy) score += 10;
+  
+  // Yang 2024: Hipoalbuminemia y el relleno capilar retrasado (Plasma Refill Rate bajo)
+  if (patient.albumin < 3.0) score += 15;
+  else if (patient.albumin < 3.5) score += 8;
+  
+  if (patient.age > 75) score += 8;
+  else if (patient.age > 65) score += 4;
+
+  // 4. Estados del simulador para reflejar la ventana clínica (ground truth del simulador)
   if (phase === "dropping") score += 15;
   if (phase === "hid") score += 35;
-  if (phase === "recovering") score += 8;
-  return Math.min(100, score);
+  if (phase === "recovering") score += 5;
+
+  return Math.min(99, score); // Limitamos a 99%
 }
 
 function riskCategory(score: number): "bajo" | "moderado" | "alto" | "muy alto" {
-  if (score >= 65) return "muy alto";
-  if (score >= 45) return "alto";
-  if (score >= 25) return "moderado";
+  if (score >= 70) return "muy alto";
+  if (score >= 50) return "alto";
+  if (score >= 30) return "moderado";
   return "bajo";
 }
 
-function calculateIdhtRiskScore(sbp: number, patient: Patient, preSbp: number, idhtPhase: string): number {
+function calculateIdhtRiskScore(sbp: number, hr: number, patient: Patient, preSbp: number, idhtPhase: string): number {
   let score = 0;
+  
+  // EVIDENCIA CLÍNICA: Hipertensión Intradiálisis (IDHTN)
+  // Innes et al. / Chou et al. (Factores de riesgo para IDHTN)
+  
   const sbpRise = sbp - preSbp;
+  
+  // Incremento paradójico de la TAS
   if (sbpRise > 20) score += 35;
   else if (sbpRise > 10) score += 20;
   else if (sbpRise > 5) score += 8;
-  if (patient.sodiumDialysate >= 140) score += 20;
-  else if (patient.sodiumDialysate >= 138) score += 10;
-  if (patient.dialysisVintage > 60) score += 15;
-  else if (patient.dialysisVintage > 36) score += 8;
+  
+  // Sobrecarga de volumen crónico y concentración de Na
+  if (patient.sodiumDialysate >= 140) score += 25;
+  else if (patient.sodiumDialysate >= 138) score += 12;
+  
+  // Antigüedad en hemodiálisis (Rigidez arterial, disfunción endotelial)
+  if (patient.dialysisVintage > 72) score += 18;
+  else if (patient.dialysisVintage > 48) score += 10;
+  
+  // TAS pre-diálisis elevada como base
   if (preSbp > 160) score += 15;
   else if (preSbp > 150) score += 8;
+  
+  // Edad avanzada
+  if (patient.age > 65) score += 5;
+  
+  // Retroalimentación del simulador
   if (idhtPhase === "rising") score += 20;
   if (idhtPhase === "idht") score += 40;
-  return Math.min(100, score);
+  
+  return Math.min(99, score);
 }
 
 const noise = () => Math.round((Math.random() - 0.5) * 6);
@@ -240,9 +284,9 @@ export function initSimulator() {
         ufRemoved: Number(ufRemoved.toFixed(3)),
         hidEvent: 0,
         idhtEvent: 0,
-        riskScore: calculateRiskScore(sbp, patient, ufRate(patient), "stable"),
-        riskCategory: riskCategory(calculateRiskScore(sbp, patient, ufRate(patient), "stable")),
-        idhtRiskScore: calculateIdhtRiskScore(sbp, patient, state.preSbp, "none")
+        riskScore: calculateRiskScore(sbp, hr, patient, ufRate(patient), "stable", state.preSbp),
+        riskCategory: riskCategory(calculateRiskScore(sbp, hr, patient, ufRate(patient), "stable", state.preSbp)),
+        idhtRiskScore: calculateIdhtRiskScore(sbp, hr, patient, state.preSbp, "none")
       };
       storage.addReading(patient.id, reading);
     }
@@ -423,13 +467,13 @@ export function initSimulator() {
         }
 
         if (state.idhtPhase === "rising") {
-          sbp += 8 + Math.round(Math.random() * 6);
-          dbp += 5 + Math.round(Math.random() * 4);
+          sbp += 20 + Math.round(Math.random() * 10);
+          dbp += 10 + Math.round(Math.random() * 5);
         }
         if (state.idhtPhase === "idht") {
-          sbp += 18 + Math.round(Math.random() * 12);
-          dbp += 10 + Math.round(Math.random() * 6);
-          hr += 5 + Math.round(Math.random() * 8);
+          sbp += 40 + Math.round(Math.random() * 20);
+          dbp += 20 + Math.round(Math.random() * 10);
+          hr += 10 + Math.round(Math.random() * 8);
         }
 
         if (patient.cardiopathy) sbp -= 5;
@@ -439,8 +483,8 @@ export function initSimulator() {
         dbp = Math.round(Math.max(40, dbp));
         hr = Math.round(Math.max(45, Math.min(140, hr)));
 
-        const risk = calculateRiskScore(sbp, patient, ufr, state.phase);
-        const idhtRisk = calculateIdhtRiskScore(sbp, patient, state.preSbp, state.idhtPhase);
+        const risk = calculateRiskScore(sbp, hr, patient, ufr, state.phase, state.preSbp);
+        const idhtRisk = calculateIdhtRiskScore(sbp, hr, patient, state.preSbp, state.idhtPhase);
 
         const reading: SessionReading = {
           id: Date.now() + patient.id,
