@@ -51,6 +51,7 @@ export interface Patient {
   phase: string;
   hidEpisodes: number;
   idhtEpisodes: number;
+  dialyzer?: string;
   currentReading?: PatientReading;
   historicalLabs?: HistoricalLab[];
   medications?: Medication[];

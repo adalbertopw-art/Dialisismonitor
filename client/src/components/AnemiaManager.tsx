@@ -47,9 +47,9 @@ export function AnemiaManager({ patient }: any) {
   const hbTrend = hb - hbPrev;
   
   return (
-    <Card className="bg-[#0a0a0a] border-white/5 shadow-xl mt-6 relative overflow-hidden group">
+    <Card className="bg-background border-border shadow-xl mt-6 relative overflow-hidden group">
       <div className="absolute top-0 left-0 w-1 h-full bg-rose-500/50 group-hover:bg-rose-400 transition-colors" />
-      <CardHeader className="py-4 px-6 border-b border-white/5 bg-gradient-to-r from-rose-500/10 to-transparent">
+      <CardHeader className="py-4 px-6 border-b border-border bg-gradient-to-r from-rose-500/10 to-transparent">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <CardTitle className="text-[12px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-rose-400">
@@ -59,7 +59,7 @@ export function AnemiaManager({ patient }: any) {
               Basado en guías KDIGO y Cinética de Hierro
             </CardDescription>
           </div>
-          <div className={`px-3 py-1 rounded-full border ${statusBg} border-white/10 flex items-center gap-2 w-fit`}>
+          <div className={`px-3 py-1 rounded-full border ${statusBg} border-border flex items-center gap-2 w-fit`}>
             {statusColor.includes('rose') ? <AlertTriangle size={12} className={statusColor} /> : <Target size={12} className={statusColor} />}
             <span className={`text-[10px] font-bold uppercase tracking-widest ${statusColor}`}>{status}</span>
           </div>
@@ -71,7 +71,7 @@ export function AnemiaManager({ patient }: any) {
           
           {/* Metrics */}
           <div className="space-y-4">
-            <div className="bg-[#111] p-4 rounded-lg border border-white/5 flex items-center justify-between">
+            <div className="bg-card p-4 rounded-lg border border-border flex items-center justify-between">
               <div>
                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Hemoglobina</span>
                 <div className="flex items-end gap-2 mt-1">
@@ -89,14 +89,14 @@ export function AnemiaManager({ patient }: any) {
             </div>
             
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[#111] p-3 rounded-lg border border-white/5">
+              <div className="bg-card p-3 rounded-lg border border-border">
                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Ferritina</span>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={`text-lg font-mono font-bold ${(ferritin < 200 || ferritin > 800) ? 'text-amber-400' : 'text-sky-400'}`}>{ferritin}</span>
                   <span className="text-[9px] text-muted-foreground">ng/mL</span>
                 </div>
               </div>
-              <div className="bg-[#111] p-3 rounded-lg border border-white/5">
+              <div className="bg-card p-3 rounded-lg border border-border">
                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Sat. Transf</span>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={`text-lg font-mono font-bold ${tsat < 20 ? 'text-rose-400' : 'text-sky-400'}`}>{tsat}</span>
@@ -114,7 +114,7 @@ export function AnemiaManager({ patient }: any) {
                  <Zap size={14} className="text-rose-400" />
                  <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-300">Decisión IA: Agentes Estimulantes (AEE)</h4>
                </div>
-               <p className="text-[12px] text-white/80 leading-relaxed font-medium">
+               <p className="text-[12px] text-muted-foreground leading-relaxed font-medium">
                  {recommendation}
                </p>
                <div className="mt-auto text-[10px] text-muted-foreground/60 border-t border-rose-500/10 pt-2 flex justify-between items-center top-6">
@@ -129,7 +129,7 @@ export function AnemiaManager({ patient }: any) {
                  <Activity size={14} className="text-amber-400" />
                  <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500/90">Cinética de Hierro</h4>
                </div>
-               <p className="text-[11px] text-white/70 leading-relaxed">
+               <p className="text-[11px] text-muted-foreground leading-relaxed">
                  {ironRecommendation}
                </p>
             </div>

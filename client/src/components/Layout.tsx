@@ -8,7 +8,9 @@ import {
   ChevronLeft, 
   ChevronRight,
   AlertCircle,
-  Database
+  Database,
+  Moon,
+  Sun
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +20,25 @@ import { AlertsDialog } from "@/components/AlertsDialog";
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [location] = useLocation();
+
+  const [theme, setTheme] = useState(() => {
+    try {
+      const val = localStorage.getItem("hd_theme");
+      if (val === "dark" || val === "light") return val;
+    } catch {}
+    // Default to dark
+    return "dark";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("hd_theme", theme);
+    const html = document.documentElement;
+    if (theme === "dark") {
+      html.classList.add("dark");
+    } else {
+      html.classList.remove("dark");
+    }
+  }, [theme]);
 
   const [aiAutopilot, setAiAutopilot] = useState(() => {
     try {
@@ -74,7 +95,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               href="/"
               className={cn(
                 "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all font-bold text-sm",
-                location === "/" ? "bg-[#0ea5e9] text-white shadow-[0_0_15px_rgba(14,165,233,0.3)]" : "text-muted-foreground hover:bg-secondary hover:text-white"
+                location === "/" ? "bg-[#0ea5e9] text-foreground shadow-[0_0_15px_rgba(14,165,233,0.3)]" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
               )}
             >
               <LayoutDashboard size={18} />
@@ -83,9 +104,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
           {!collapsed && (
-            <div className="mx-2 mt-8 p-3 bg-[#111] border border-white/5 rounded-xl space-y-3">
+            <div className="mx-2 mt-8 p-3 bg-card border border-border rounded-xl space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-rose-400">
+                <div className="flex items-center gap-2 text-rose-500">
                   <Database size={16} />
                   <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Intervención IA</span>
                 </div>
@@ -98,19 +119,32 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "w-full py-2 px-3 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm border flex items-center justify-center gap-2",
                   aiAutopilot 
-                    ? "bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500/20" 
-                    : "bg-white/5 text-muted-foreground border-white/10 hover:bg-white/10"
+                    ? "bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500/20" 
+                    : "bg-muted text-muted-foreground border-border hover:bg-muted/80"
                 )}
               >
                 {aiAutopilot ? "Autopilot: Activo" : "Requiere Aprobación"}
               </button>
             </div>
           )}
+
+          <div className="px-4 py-2 mt-2">
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className={cn(
+                "flex items-center gap-3 w-full p-2.5 rounded-lg transition-all text-sm font-medium",
+                "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              )}
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              {!collapsed && <span>Tema {theme === 'dark' ? 'Claro' : 'Oscuro'}</span>}
+            </button>
+          </div>
         </nav>
 
         {/* Stats and Info - ESTADO DEL PISO */}
         {!collapsed && stats && (
-          <div className="p-4 pt-1 space-y-4 border-t border-sidebar-border/50">
+          <div className="p-4 pt-1 space-y-4 border-t border-border">
             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 px-2 mt-4">Estado del piso</h3>
             <div className="grid grid-cols-2 gap-2 p-1">
               <FloorStatCard label="Pacientes" value={stats.active} total={15} filterType="all" />
@@ -121,7 +155,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        <footer className="p-4 text-[10px] text-muted-foreground space-y-2 border-t border-sidebar-border/50">
+        <footer className="p-4 text-[10px] text-muted-foreground space-y-2 border-t border-border">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             <p>Simulación activa · 15 camas</p>
@@ -131,7 +165,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden p-8 bg-[#0a0a0a] relative">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden p-8 bg-background relative">
         {children}
       </main>
 
@@ -144,7 +178,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 function FloorStatCard({ label, value, isAlert, filterType }: any) {
   return (
     <div 
-      className="bg-[#111] border border-white/5 rounded-md p-2 flex flex-col gap-1 cursor-pointer hover:bg-white/5 active:scale-95 transition-all"
+      className="bg-card border border-border rounded-md p-2 flex flex-col gap-1 cursor-pointer hover:bg-secondary active:scale-95 transition-all"
       onClick={() => {
         window.dispatchEvent(new CustomEvent('show-dashboard-alerts', { detail: { filterType } }));
       }}

@@ -64,6 +64,8 @@ import { AIRecommendationsPanel } from "@/components/AIRecommendationsPanel";
 import { DryWeightOptimizer } from "@/components/DryWeightOptimizer";
 import { AnemiaManager } from "@/components/AnemiaManager";
 import { AVFThrombosisPredictor } from "@/components/AVFThrombosisPredictor";
+import { VascularAccessDigitalTwin } from "@/components/VascularAccessDigitalTwin";
+import { VascularAIComparison } from "@/components/VascularAIComparison";
 import { SBARNoteGenerator } from "@/components/SBARNoteGenerator";
 import { NursingNotesMiner } from "@/components/NursingNotesMiner";
 import { ClinicalHistoryNote } from "@/components/ClinicalHistoryNote";
@@ -177,6 +179,10 @@ export default function PatientDetail() {
     refetchInterval: isSimulating ? false : 3000, // Stop real refetching when simulating
   });
 
+  const { data: preDialysis, isLoading: isLoadingPreDialysis } = useQuery({
+    queryKey: [`/api/patients/${id}/pre-dialysis`],
+  });
+
   // Use simulated readings when active to allow user to see how UI updates
   useEffect(() => {
     if (isSimulating && !simulatedReadings && detail?.readings) {
@@ -233,7 +239,7 @@ export default function PatientDetail() {
     return recs;
   }, [lastReading?.riskScore, lastReading?.sbp, processedRecommendations]);
 
-  if (isLoading || !detail) {
+  if (isLoading || isLoadingPreDialysis || !detail) {
     return (
       <div className="p-8 space-y-4 shadow-sm">
         <Skeleton className="h-12 w-1/3" />
@@ -243,6 +249,27 @@ export default function PatientDetail() {
   }
 
   const patient = detail.patient;
+
+  if (!preDialysis && patient.minuteElapsed === 0) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 space-y-8 animate-in fade-in zoom-in-95 duration-500">
+         <div className="bg-amber-500/10 p-6 rounded-full border border-amber-500/20">
+           <ClipboardList size={64} className="text-amber-500 mx-auto" />
+         </div>
+         <div className="text-center space-y-3 max-w-lg">
+           <h2 className="text-2xl font-bold">Valoración Pre-diálisis Pendiente</h2>
+           <p className="text-muted-foreground text-sm leading-relaxed">
+             Antes de iniciar el seguimiento en vivo y la telemetría, se deben ingresar los datos clínicos y constantes vitales actuales del paciente para calibrar los modelos predictivos e inicializar correctamente su gemelo digital.
+           </p>
+         </div>
+         <Link href={`/paciente/${id}/pre-dialisis`}>
+           <Button size="lg" className="px-8 shadow-xl shadow-amber-500/20 bg-amber-500 hover:bg-amber-600 text-black">
+             Ingresar Valoración
+           </Button>
+         </Link>
+      </div>
+    );
+  }
 
   const readings = activeReadings;
 
@@ -392,14 +419,14 @@ export default function PatientDetail() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link href="/">
-              <div className="flex items-center justify-center h-8 w-8 rounded-full bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all cursor-pointer">
+              <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer">
                 <ArrowLeft size={16} />
               </div>
             </Link>
 
             <div className="flex flex-col">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-base md:text-xl font-bold tracking-tight text-white/90 flex items-center gap-2">
+                <h2 className="text-base md:text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
                   {patient.name}
                   <div className={cn(
                     "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[9px] uppercase tracking-widest ml-2",
@@ -460,7 +487,7 @@ export default function PatientDetail() {
                   "h-8 px-2 md:px-3 text-[9px] font-bold uppercase tracking-widest transition-all",
                   isSimulating
                     ? "text-amber-500 bg-amber-500/10"
-                    : "text-muted-foreground hover:bg-white/5",
+                    : "text-muted-foreground hover:bg-muted/50",
                 )}
               >
                 <Zap
@@ -478,7 +505,7 @@ export default function PatientDetail() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 px-2 md:px-3 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-white hover:bg-white/5"
+                  className="h-8 px-2 md:px-3 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 >
                   <ClipboardList size={12} className="md:mr-1.5" />{" "}
                   <span className="hidden md:inline">Pre-dial</span>
@@ -489,7 +516,7 @@ export default function PatientDetail() {
                 onClick={handleExport}
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2 md:px-3 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-white hover:bg-white/5"
+                className="h-8 px-2 md:px-3 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-muted/50"
               >
                 <Download size={12} className="md:mr-1.5" />{" "}
                 <span className="hidden md:inline">Export</span>
@@ -509,7 +536,7 @@ export default function PatientDetail() {
                 </span>
                 <span>{minuteProgress}%</span>
               </div>
-              <div className="h-1 w-24 bg-white/5 rounded-full overflow-hidden">
+              <div className="h-1 w-24 bg-muted/50 rounded-full overflow-hidden">
                 <div
                   className={cn(
                     "h-full transition-all duration-1000 bg-primary",
@@ -525,7 +552,7 @@ export default function PatientDetail() {
         </div>
 
         {/* Progress bar thin bottom of header for mobile/global visibility */}
-        <div className="absolute bottom-0 left-0 w-full h-[1px] bg-white/5">
+        <div className="absolute bottom-0 left-0 w-full h-[1px] bg-muted/50">
           <div
             className="h-full bg-primary/40 transition-all duration-1000"
             style={{ width: `${Math.min(100, minuteProgress)}%` }}
@@ -533,7 +560,7 @@ export default function PatientDetail() {
         </div>
 
         {lastReading.riskScore > 65 && (
-          <div className="absolute left-1/2 -bottom-8 -translate-x-1/2 bg-rose-500 text-white px-4 py-1 rounded-b-lg flex items-center gap-2 shadow-lg shadow-rose-900/20 border border-rose-400/20 animate-in slide-in-from-top duration-300">
+          <div className="absolute left-1/2 -bottom-8 -translate-x-1/2 bg-rose-500 text-foreground px-4 py-1 rounded-b-lg flex items-center gap-2 shadow-lg shadow-rose-900/20 border border-rose-400/20 animate-in slide-in-from-top duration-300">
             <AlertCircle size={12} className="animate-bounce" />
             <span className="text-[9px] font-bold uppercase tracking-widest">
               Alerta: Riesgo HID Crítico
@@ -549,13 +576,13 @@ export default function PatientDetail() {
           isScrolled ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
         )}
       >
-        <div className={cn("flex items-center gap-3 bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 rounded-full px-4 py-2 shadow-2xl", isScrolled ? "pointer-events-auto" : "pointer-events-none")}>
+        <div className={cn("flex items-center gap-3 bg-background/90 backdrop-blur-xl border border-border rounded-full px-4 py-2 shadow-2xl", isScrolled ? "pointer-events-auto" : "pointer-events-none")}>
           <Link href="/">
-            <div className="flex items-center justify-center h-6 w-6 rounded-full bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all cursor-pointer">
+            <div className="flex items-center justify-center h-6 w-6 rounded-full bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer">
               <ArrowLeft size={12} />
             </div>
           </Link>
-          <span className="text-sm font-bold tracking-tight text-white/90 whitespace-nowrap flex items-center gap-2">
+          <span className="text-sm font-bold tracking-tight text-foreground whitespace-nowrap flex items-center gap-2">
             {patient.name}
             <div className={cn(
               "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[9px] uppercase tracking-widest",
@@ -567,7 +594,7 @@ export default function PatientDetail() {
               <span className="hidden sm:inline">{aiAutopilot ? "Autopilot" : "Recomendación"}</span>
             </div>
           </span>
-          <div className="flex flex-col items-start px-2 border-l border-white/10">
+          <div className="flex flex-col items-start px-2 border-l border-border">
             <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 leading-none">
               {patient.bed} · {patient.age}a
             </span>
@@ -584,14 +611,14 @@ export default function PatientDetail() {
       </div>
 
       {/* Información Detallada del Paciente (Collapsible) */}
-      <div className="bg-[#111] border border-white/5 rounded-lg shadow-sm mx-0 md:mx-0">
+      <div className="bg-card border border-border rounded-lg shadow-sm mx-0 md:mx-0">
         <button
           onClick={() => setIsInfoExpanded(!isInfoExpanded)}
-          className="w-full flex items-center justify-between p-3 md:px-4 bg-white/5 hover:bg-white/10 transition-colors"
+          className="w-full flex items-center justify-between p-3 md:px-4 bg-muted/50 hover:bg-muted transition-colors"
         >
           <div className="flex items-center gap-2 text-sky-400">
             <Info size={16} />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-white/90">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-foreground">
               Información Clínica Detallada
             </span>
           </div>
@@ -611,12 +638,12 @@ export default function PatientDetail() {
           )}
         >
           <div className="overflow-hidden">
-            <div className="p-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 border-t border-white/5 bg-[#0a0a0a]">
+            <div className="p-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 border-t border-border bg-background">
               <div className="space-y-1">
                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                   Edad
                 </span>
-                <p className="text-sm font-mono font-bold text-white/90">
+                <p className="text-sm font-mono font-bold text-foreground">
                   {patient.age} años
                 </p>
               </div>
@@ -624,7 +651,7 @@ export default function PatientDetail() {
                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                   Sexo
                 </span>
-                <p className="text-sm font-mono font-bold text-white/90 capitalize">
+                <p className="text-sm font-mono font-bold text-foreground capitalize">
                   {patient.sex}
                 </p>
               </div>
@@ -632,7 +659,7 @@ export default function PatientDetail() {
                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                    Vintage HD
                 </span>
-                <p className="text-sm font-mono font-bold text-white/90">
+                <p className="text-sm font-mono font-bold text-foreground">
                   {patient.dialysisVintage} meses
                 </p>
               </div>
@@ -640,7 +667,7 @@ export default function PatientDetail() {
                  <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                   Peso Seco
                 </span>
-                <p className="text-sm font-mono font-bold text-white/90">
+                <p className="text-sm font-mono font-bold text-foreground">
                   {patient.dryWeight} kg
                 </p>
               </div>
@@ -648,7 +675,7 @@ export default function PatientDetail() {
                  <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                   Etiología
                 </span>
-                <p className="text-xs font-bold text-white/90 truncate" title={patient.etiology}>
+                <p className="text-xs font-bold text-foreground truncate" title={patient.etiology}>
                   {patient.etiology || "-"}
                 </p>
               </div>
@@ -656,7 +683,7 @@ export default function PatientDetail() {
                  <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                   Diabetes
                 </span>
-                <p className="text-sm font-mono font-bold text-white/90">
+                <p className="text-sm font-mono font-bold text-foreground">
                   {patient.diabetic ? "Sí" : "No"}
                 </p>
               </div>
@@ -664,7 +691,7 @@ export default function PatientDetail() {
                  <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                   Cardiopatía
                 </span>
-                <p className="text-sm font-mono font-bold text-white/90">
+                <p className="text-sm font-mono font-bold text-foreground">
                   {patient.cardiopathy ? "Sí" : "No"}
                 </p>
               </div>
@@ -672,7 +699,7 @@ export default function PatientDetail() {
                  <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
                   Acceso
                 </span>
-                <p className="text-xs font-bold text-white/90 truncate" title={`${patient.vascularAccessType} (${patient.vascularAccessLocation})`}>
+                <p className="text-xs font-bold text-foreground truncate" title={`${patient.vascularAccessType} (${patient.vascularAccessLocation})`}>
                   {patient.vascularAccessType || "-"}
                 </p>
               </div>
@@ -689,7 +716,7 @@ export default function PatientDetail() {
             "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
             activeTab === "monitor"
               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-              : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5",
+              : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted/50",
           )}
         >
           Monitor en Vivo
@@ -700,7 +727,7 @@ export default function PatientDetail() {
             "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
             activeTab === "laboratorios"
               ? "bg-sky-500/10 text-sky-400 border-sky-500/20"
-              : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5",
+              : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted/50",
           )}
         >
           Labs y Prescripción
@@ -711,7 +738,7 @@ export default function PatientDetail() {
             "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
             activeTab === "historial"
               ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-              : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5",
+              : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted/50",
           )}
         >
           Historial y Evolución
@@ -722,7 +749,7 @@ export default function PatientDetail() {
             "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
             activeTab === "vascular"
               ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-              : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5",
+              : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted/50",
           )}
         >
           Acceso Vascular
@@ -733,7 +760,7 @@ export default function PatientDetail() {
             "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
             activeTab === "maquina"
               ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-              : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5",
+              : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted/50",
           )}
         >
           Máquina / Filtro
@@ -814,14 +841,14 @@ export default function PatientDetail() {
           </div>
 
           {/* Prediction Section - Enhanced with AI Interpretability */}
-          <div className="bg-[#1a1010]/30 border border-rose-500/10 rounded-xl p-6 space-y-6">
+          <div className="bg-rose-500/10 dark:bg-rose-950/30 border border-rose-500/20 rounded-xl p-6 space-y-6">
             <header className="flex flex-col gap-2 md:flex-row md:justify-between md:items-center">
               <div className="space-y-1">
-                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-rose-400 flex items-center gap-2">
+                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-rose-600 dark:text-rose-400 flex items-center gap-2">
                   <TrendingUp size={16} /> Predicción LSTM de Crisis HID
                   (Horizonte 60 min)
                 </h3>
-                <p className="text-[10px] text-muted-foreground/60 font-bold uppercase">
+                <p className="text-[10px] text-muted-foreground font-bold uppercase">
                   Modelo Deep Learning Transformer + TCN (AUROC 0.94) · Yang AJKD 2024
                   · Explicabilidad SHAP
                 </p>
@@ -840,7 +867,7 @@ export default function PatientDetail() {
                     Prevención Activa
                   </Badge>
                 ) : (
-                  <Badge className="bg-rose-500 text-white border-none h-6 px-3 text-[10px] font-black uppercase tracking-widest leading-none animate-pulse">
+                  <Badge className="bg-rose-500 text-foreground border-none h-6 px-3 text-[10px] font-black uppercase tracking-widest leading-none animate-pulse">
                     Riesgo Inminente
                   </Badge>
                 )}
@@ -1003,12 +1030,12 @@ export default function PatientDetail() {
                           const ptData = payload[0].payload;
                           const hasIntervention = ptData.aiInterventionMarker !== null && ptData.aiInterventionMarker !== undefined;
                           return (
-                            <div className={`bg-[#000]/90 border border-white/10 p-3 rounded shadow-xl ${hasIntervention ? 'border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : ''}`}>
+                            <div className={`bg-background/90 border border-border p-3 rounded shadow-xl ${hasIntervention ? 'border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : ''}`}>
                               <div className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2 mb-1">
                                 <Clock size={10} /> Min.{" "}
                                 {ptData.minute} — PREDICCIÓN LSTM
                               </div>
-                              <div className="text-sm font-bold text-white mb-2 flex items-center justify-between gap-4">
+                              <div className="text-sm font-bold text-foreground mb-2 flex items-center justify-between gap-4">
                                 <span>PAS Estimada: <span className="text-rose-500">{payload[0].value}</span> mmHg</span>
                                 {hasIntervention && <span className="text-[8px] font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded animate-pulse">IA INTERVINO</span>}
                               </div>
@@ -1034,56 +1061,56 @@ export default function PatientDetail() {
 
               {/* Explainability Panel (SHAP values & TTE) */}
               <div className="flex flex-col gap-4">
-                <div className="bg-black/40 border border-white/5 rounded-lg p-4 flex flex-col items-center justify-center relative overflow-hidden">
+                <div className="bg-black/5 dark:bg-black/40 border border-border rounded-lg p-4 flex flex-col items-center justify-center relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500/0 via-rose-500 to-rose-500/0 animate-pulse"></div>
                   <Activity
                     size={24}
-                    className="text-rose-500 mb-2 opacity-50"
+                    className="text-rose-600 dark:text-rose-500 mb-2 opacity-50"
                   />
                   <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 text-center">
                     Tiempo estimado c/riesgo
                   </div>
-                  <div className="text-4xl font-black text-rose-500 font-mono tracking-tighter">
-                    18<span className="text-base text-rose-500/50">min</span>
+                  <div className="text-4xl font-black text-rose-600 dark:text-rose-500 font-mono tracking-tighter">
+                    18<span className="text-base text-rose-600/50 dark:text-rose-500/50">min</span>
                   </div>
                   <div className="text-[9px] text-muted-foreground/50 uppercase mt-1">
                     Nivel de Confianza: 87%
                   </div>
                 </div>
 
-                <div className="bg-black/40 border border-white/5 rounded-lg p-4 flex-1">
+                <div className="bg-black/5 dark:bg-black/40 border border-border rounded-lg p-4 flex-1">
                   <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
                     <Settings size={12} /> Factores Clave (SHAP)
                   </div>
                   <div className="space-y-3">
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px]">
-                        <span className="text-white/80">
+                        <span className="text-muted-foreground">
                           Tendencia SBP Acum.
                         </span>
-                        <span className="text-rose-400 font-mono">+0.42</span>
+                        <span className="text-rose-600 dark:text-rose-400 font-mono">+0.42</span>
                       </div>
-                      <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-muted/50 h-1.5 rounded-full overflow-hidden">
                         <div className="bg-rose-500 h-full w-[85%]"></div>
                       </div>
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px]">
-                        <span className="text-white/80">UFR Actual (15.2)</span>
-                        <span className="text-rose-400 font-mono">+0.31</span>
+                        <span className="text-muted-foreground">UFR Actual (15.2)</span>
+                        <span className="text-rose-600 dark:text-rose-400 font-mono">+0.31</span>
                       </div>
-                      <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-muted/50 h-1.5 rounded-full overflow-hidden">
                         <div className="bg-rose-500/80 h-full w-[60%]"></div>
                       </div>
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px]">
-                        <span className="text-white/80">
+                        <span className="text-muted-foreground">
                           Edad / Vasculopatía
                         </span>
-                        <span className="text-rose-400 font-mono">+0.15</span>
+                        <span className="text-rose-600 dark:text-rose-400 font-mono">+0.15</span>
                       </div>
-                      <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-muted/50 h-1.5 rounded-full overflow-hidden">
                         <div className="bg-rose-500/60 h-full w-[35%]"></div>
                       </div>
                     </div>
@@ -1092,10 +1119,10 @@ export default function PatientDetail() {
 
                 {/* Counterfactuals */}
                 <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3">
-                  <div className="text-[9px] font-bold uppercase tracking-widest text-emerald-500 mb-2">
+                  <div className="text-[9px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-500 mb-2">
                     Análisis What-If
                   </div>
-                  <p className="text-[10px] text-emerald-400/80 leading-tight">
+                  <p className="text-[10px] text-emerald-700 dark:text-emerald-400/80 leading-tight">
                     Reducir UFR a <strong>8.0 mL/kg/h</strong> retrasaría la
                     crisis en al menos <strong>+45 min</strong>. (Confianza:
                     Alta)
@@ -1117,7 +1144,7 @@ export default function PatientDetail() {
           />
 
           {/* UF Projection Section */}
-          <Card className="bg-[#0a0a0a] border-emerald-500/10">
+          <Card className="bg-background border-emerald-500/10">
             <CardHeader className="py-3 px-4 border-b border-emerald-500/5 flex flex-row items-center justify-between">
               <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 flex items-center gap-2">
                 <CheckCircle2 size={14} /> Proyección UF — Fin de sesión
@@ -1132,7 +1159,7 @@ export default function PatientDetail() {
                   <span className="text-muted-foreground/60">
                     UF removida:{" "}
                     <span className="text-foreground">
-                      {lastReading.ufRemoved.toFixed(2)} L
+                      {(lastReading?.ufRemoved ?? 0).toFixed(2)} L
                     </span>
                   </span>
                 </div>
@@ -1171,7 +1198,7 @@ export default function PatientDetail() {
                     UFR actual
                   </div>
                   <div className="text-xs font-mono font-bold text-amber-500">
-                    {currentUfr.toFixed(1)}{" "}
+                    {(currentUfr ?? 0).toFixed(1)}{" "}
                     mL/kg/h
                   </div>
                 </div>
@@ -1180,22 +1207,72 @@ export default function PatientDetail() {
                     Déficit proyectado
                   </div>
                   <div className={`text-xs font-mono font-bold ${ufDeficit > 0.05 ? "text-amber-500" : "text-emerald-500"}`}>
-                    {ufDeficit.toFixed(2)} L ({Math.round(ufDeficitPercent)}%)
+                    {(ufDeficit ?? 0).toFixed(2)} L ({Math.round(ufDeficitPercent ?? 0)}%)
                   </div>
                 </div>
-                <div className="text-center">
+                <div className="text-center flex flex-col items-center">
                   <div className="text-[9px] text-muted-foreground uppercase font-bold mb-1">
                     ¿Completará?
                   </div>
                   <div className={`text-xs font-bold ${isCompleting ? "text-emerald-500" : "text-amber-500"}`}>{isCompleting ? "Sí" : "No"}</div>
                 </div>
               </div>
+              
+              {(!isCompleting && uiTimeExtension === 0) && (
+                <div className="pt-4 border-t border-border flex flex-col gap-3 mt-2">
+                  <div className="text-[10px] text-muted-foreground leading-tight">
+                    El volumen de UF objetivo no se alcanzará debido a los ajustes de UFR en la sesión. Para alcanzar el objetivo lógicamente, extienda el tiempo de terapia de forma segura.
+                  </div>
+                  <div className="flex gap-2 w-full justify-between">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="h-8 flex-1 text-[10px] uppercase tracking-widest font-bold border-sky-500/20 text-sky-400 bg-sky-500/10 hover:bg-sky-500/20"
+                      onClick={() => setUiTimeExtension(0.5)}
+                    >
+                      +30 min
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="h-8 flex-1 text-[10px] uppercase tracking-widest font-bold border-sky-500/20 text-sky-400 bg-sky-500/10 hover:bg-sky-500/20"
+                      onClick={() => setUiTimeExtension(1.0)}
+                    >
+                      +60 min
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="h-8 flex-1 text-[10px] uppercase tracking-widest font-bold border-sky-500/20 text-sky-400 bg-sky-500/10 hover:bg-sky-500/20"
+                      onClick={() => setUiTimeExtension(1.5)}
+                    >
+                      +90 min
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {uiTimeExtension > 0 && (
+                <div className="pt-4 border-t border-border flex items-center justify-between mt-2">
+                  <div className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">
+                    Sesión extendida clinicamente: +{uiTimeExtension}h
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="h-6 text-[10px] px-2 text-muted-foreground hover:text-foreground"
+                    onClick={() => setUiTimeExtension(0)}
+                  >
+                    Deshacer
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Risk Timeline Section */}
-          <Card className="bg-[#0a0a0a] border-white/5 shadow-2xl">
-            <CardHeader className="py-4 px-6 flex-row items-center justify-between border-b border-white/5">
+          <Card className="bg-background border-border shadow-2xl">
+            <CardHeader className="py-4 px-6 flex-row items-center justify-between border-b border-border">
               <div className="space-y-1">
                 <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-sky-400">
                   <Clock size={16} /> Línea de Tiempo de Riesgo — Ventanas 15 /
@@ -1298,7 +1375,7 @@ export default function PatientDetail() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Main Charts */}
             <div className="space-y-4">
-              <Card className="bg-[#111] border-white/5 shadow-2xl">
+              <Card className="bg-card border-border shadow-2xl">
                 <CardHeader className="py-3 px-4 flex-row items-center justify-between">
                   <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
                     <Activity size={14} className="text-rose-400" /> Presión
@@ -1363,7 +1440,7 @@ export default function PatientDetail() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-[#111] border-white/5">
+              <Card className="bg-card border-border">
                 <CardHeader className="py-3 px-4">
                   <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
                     <Activity size={14} className="text-rose-400" /> Frecuencia
@@ -1403,7 +1480,7 @@ export default function PatientDetail() {
             </div>
 
             <div className="space-y-4">
-              <Card className="bg-[#111] border-white/5">
+              <Card className="bg-card border-border">
                 <CardHeader className="py-3 px-4 flex-row items-center justify-between">
                   <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
                     <TrendingUp size={14} className="text-sky-400" /> Score de
@@ -1474,7 +1551,7 @@ export default function PatientDetail() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-[#111] border-white/5">
+              <Card className="bg-card border-border">
                 <CardHeader className="py-3 px-4">
                   <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
                     <Droplet size={14} className="text-sky-400" /> UF Removida
@@ -1527,8 +1604,8 @@ export default function PatientDetail() {
 
           {/* Intervention Log & HID Episodes */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4">
-            <Card className="bg-[#111] border-white/5 overflow-hidden">
-              <CardHeader className="py-3 px-4 border-b border-white/5 bg-white/5">
+            <Card className="bg-card border-border overflow-hidden">
+              <CardHeader className="py-3 px-4 border-b border-border bg-muted/50">
                 <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
                   <ClipboardList size={14} className="text-emerald-400" />{" "}
                   Registro de Intervenciones
@@ -1539,7 +1616,7 @@ export default function PatientDetail() {
               </CardContent>
             </Card>
 
-            <Card className="bg-[#1a1010]/20 border-rose-500/10">
+            <Card className="bg-rose-950/20 border-rose-500/10">
               <CardHeader className="py-3 px-4 flex flex-row items-center gap-2 border-b border-rose-500/5">
                 <AlertCircle size={14} className="text-rose-500" />
                 <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] text-rose-500">
@@ -1554,7 +1631,7 @@ export default function PatientDetail() {
                     .map((r, i) => (
                       <div
                         key={`hid-log-${i}`}
-                        className="flex items-center gap-4 text-[10px] py-1 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors px-2 rounded"
+                        className="flex items-center gap-4 text-[10px] py-1 border-b border-border last:border-0 hover:bg-muted/50 transition-colors px-2 rounded"
                       >
                         <span className="text-muted-foreground w-12">
                           Min. {r.minuteOfSession}
@@ -1583,8 +1660,8 @@ export default function PatientDetail() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <DryWeightOptimizer patient={patient} />
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <Card className="bg-[#111] border-white/5">
-              <CardHeader className="py-3 px-4 border-b border-white/5">
+            <Card className="bg-card border-border">
+              <CardHeader className="py-3 px-4 border-b border-border">
                 <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
                   <Users size={14} className="text-sky-400" /> Datos del
                   Paciente
@@ -1627,8 +1704,8 @@ export default function PatientDetail() {
               </CardContent>
             </Card>
 
-            <Card className="bg-[#111] border-white/5">
-              <CardHeader className="py-3 px-4 border-b border-white/5 flex flex-row items-center justify-between">
+            <Card className="bg-card border-border">
+              <CardHeader className="py-3 px-4 border-b border-border flex flex-row items-center justify-between">
                 <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
                   <Droplet size={14} className="text-rose-400" /> Labs Recientes
                 </CardTitle>
@@ -1667,8 +1744,8 @@ export default function PatientDetail() {
               </CardContent>
             </Card>
 
-            <Card className="bg-[#111] border-white/5">
-              <CardHeader className="py-3 px-4 border-b border-white/5">
+            <Card className="bg-card border-border">
+              <CardHeader className="py-3 px-4 border-b border-border">
                 <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
                   <Activity size={14} className="text-violet-400" /> Biomarcadores
                   Avanzados
@@ -1707,8 +1784,8 @@ export default function PatientDetail() {
               </CardContent>
             </Card>
 
-            <Card className="bg-[#111] border-white/5">
-              <CardHeader className="py-3 px-4 border-b border-white/5">
+            <Card className="bg-card border-border">
+              <CardHeader className="py-3 px-4 border-b border-border">
                 <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-muted-foreground">
                   <Settings size={14} className="text-amber-400" /> Prescripción
                   HD
@@ -1729,7 +1806,7 @@ export default function PatientDetail() {
                 />
                 <SimpleRow
                   label="Filtro / Membrana"
-                  value={["FX CorDiax 80", "Revaclear 400", "Elisio 15H", "Optiflux 160NR", "Polyflux 170H", "Sureflux 190E"][id % 6]}
+                  value={patient.dialyzer || ["FX CorDiax 80", "Revaclear 400", "Elisio 15H", "Optiflux 160NR", "Polyflux 170H", "Sureflux 190E"][id % 6]}
                 />
                 <SimpleRow
                   label="Temp. dializante"
@@ -1769,6 +1846,8 @@ export default function PatientDetail() {
 
       {activeTab === "vascular" && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <VascularAIComparison />
+          <VascularAccessDigitalTwin patient={patient} lastReading={lastReading} />
           <AVFThrombosisPredictor patient={patient} lastReading={lastReading} />
         </div>
       )}
@@ -1789,7 +1868,7 @@ function MetricCardSmall({
   isLarge,
 }: any) {
   return (
-    <div className="bg-[#111] border border-white/5 rounded-lg p-4 flex flex-col justify-between h-[100px] relative overflow-hidden group">
+    <div className="bg-card border border-border rounded-lg p-4 flex flex-col justify-between h-[100px] relative overflow-hidden group">
       <div className="absolute top-0 left-0 w-1 h-full bg-border group-hover:bg-primary transition-colors" />
       <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
         {label}
@@ -1832,7 +1911,7 @@ function MetricCardSmall({
 
 function SimpleRow({ label, value, highlight }: any) {
   return (
-    <div className="flex justify-between items-center py-1 border-b border-white/5 last:border-0">
+    <div className="flex justify-between items-center py-1 border-b border-border last:border-0">
       <span className="text-[11px] font-bold uppercase text-muted-foreground tracking-widest">
         {label}
       </span>
@@ -1998,7 +2077,7 @@ function RiskTimelineCard({
     <div className="space-y-4 relative">
       <div
         className={cn(
-          "absolute -left-[23px] top-1.5 w-4 h-4 rounded-full border-4 border-[#0a0a0a] z-10 hidden md:block",
+          "absolute -left-[23px] top-1.5 w-4 h-4 rounded-full border-4 border-background z-10 hidden md:block",
           isUrgent
             ? "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]"
             : "bg-sky-400",
@@ -2007,12 +2086,12 @@ function RiskTimelineCard({
 
       <div
         className={cn(
-          "bg-[#111] border rounded-xl p-6 space-y-5 relative overflow-hidden transition-all hover:border-white/10",
-          isUrgent ? "border-rose-500/30" : "border-white/5",
+          "bg-card border rounded-xl p-6 space-y-5 relative overflow-hidden transition-all hover:border-border",
+          isUrgent ? "border-rose-500/30" : "border-border",
         )}
       >
         {isUrgent && (
-          <div className="absolute top-0 right-0 bg-rose-500 text-white text-[8px] font-black px-3 py-1 uppercase tracking-widest">
+          <div className="absolute top-0 right-0 bg-rose-500 text-foreground text-[8px] font-black px-3 py-1 uppercase tracking-widest">
             Crítico
           </div>
         )}
@@ -2074,7 +2153,7 @@ function RiskTimelineCard({
 
         <div
           className={cn(
-            "pt-4 border-t border-white/5 mt-4 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2",
+            "pt-4 border-t border-border mt-4 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2",
             isUrgent ? "text-rose-500" : "text-amber-500",
           )}
         >

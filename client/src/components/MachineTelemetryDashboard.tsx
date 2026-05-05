@@ -48,7 +48,7 @@ export function MachineTelemetryDashboard({ patient }: { patient: any }) {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Qb */}
-        <Card className="bg-[#0a0a0a] border-white/5">
+        <Card className="bg-background border-border">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500">
               <Droplet size={20} />
@@ -56,7 +56,7 @@ export function MachineTelemetryDashboard({ patient }: { patient: any }) {
             <div>
               <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Flujo Sangre (Qb)</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-white font-mono">{current.qb}</span>
+                <span className="text-xl font-black text-foreground font-mono">{current.qb}</span>
                 <span className="text-xs text-muted-foreground mr-2">ml/min</span>
               </div>
             </div>
@@ -64,7 +64,7 @@ export function MachineTelemetryDashboard({ patient }: { patient: any }) {
         </Card>
 
         {/* VP */}
-        <Card className="bg-[#0a0a0a] border-white/5">
+        <Card className="bg-background border-border">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-10 h-10 rounded-full bg-sky-500/10 flex items-center justify-center text-sky-500">
               <Activity size={20} />
@@ -72,7 +72,7 @@ export function MachineTelemetryDashboard({ patient }: { patient: any }) {
             <div>
               <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Presión Venosa</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-white font-mono">{current.vp}</span>
+                <span className="text-xl font-black text-foreground font-mono">{current.vp}</span>
                 <span className="text-xs text-muted-foreground">mmHg</span>
               </div>
             </div>
@@ -80,7 +80,7 @@ export function MachineTelemetryDashboard({ patient }: { patient: any }) {
         </Card>
 
         {/* AP */}
-        <Card className="bg-[#0a0a0a] border-white/5">
+        <Card className="bg-background border-border">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
               <Wind size={20} />
@@ -88,7 +88,7 @@ export function MachineTelemetryDashboard({ patient }: { patient: any }) {
             <div>
               <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Presión Arterial</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-white font-mono">{current.ap}</span>
+                <span className="text-xl font-black text-foreground font-mono">{current.ap}</span>
                 <span className="text-xs text-muted-foreground">mmHg</span>
               </div>
             </div>
@@ -96,7 +96,7 @@ export function MachineTelemetryDashboard({ patient }: { patient: any }) {
         </Card>
 
         {/* TMP */}
-        <Card className="bg-[#0a0a0a] border-white/5">
+        <Card className="bg-background border-border">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
               <Thermometer size={20} />
@@ -104,7 +104,7 @@ export function MachineTelemetryDashboard({ patient }: { patient: any }) {
             <div>
               <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">P. Transmembrana</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-white font-mono">{current.tmp}</span>
+                <span className="text-xl font-black text-foreground font-mono">{current.tmp}</span>
                 <span className="text-xs text-muted-foreground">mmHg</span>
               </div>
             </div>
@@ -112,8 +112,8 @@ export function MachineTelemetryDashboard({ patient }: { patient: any }) {
         </Card>
       </div>
 
-      <Card className="bg-[#0a0a0a] border-white/5">
-        <CardHeader className="pb-2 border-b border-white/5">
+      <Card className="bg-background border-border">
+        <CardHeader className="pb-2 border-b border-border">
           <CardTitle className="text-xs focus:outline-none font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
             <Activity size={14} /> Dinámica de Presiones y Flujo
           </CardTitle>
@@ -174,7 +174,7 @@ export function MachineTelemetryDashboard({ patient }: { patient: any }) {
       
       {/* Parameters */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        <Card className="bg-[#0a0a0a] border-primary/20 border-white/5 relative overflow-hidden">
+        <Card className="bg-background border-primary/20 border-border relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
              <Box size={80} />
           </div>
@@ -184,84 +184,84 @@ export function MachineTelemetryDashboard({ patient }: { patient: any }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-2 relative">
-             <div className="text-center p-3 bg-white/5 rounded-lg border border-white/5">
+             <div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
                 <span className="block text-[10px] text-muted-foreground font-bold tracking-widest mb-1 uppercase">Modelo</span>
-                <span className="text-sm font-bold text-white">{patientFilter}</span>
+                <span className="text-sm font-bold text-foreground">{patientFilter}</span>
              </div>
              <div className="grid grid-cols-2 gap-2">
-               <div className="text-center p-3 bg-white/5 rounded-lg border border-white/5">
+               <div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
                   <span className="block text-[10px] text-muted-foreground font-bold tracking-widest mb-1 uppercase">Superficie</span>
-                  <span className="text-sm font-mono font-bold text-white">{filterSurface}</span>
+                  <span className="text-sm font-mono font-bold text-foreground">{filterSurface}</span>
                </div>
-               <div className="text-center p-3 bg-white/5 rounded-lg border border-white/5">
+               <div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
                   <span className="block text-[10px] text-muted-foreground font-bold tracking-widest mb-1 uppercase">KUF</span>
-                  <span className="text-xs font-mono font-bold text-white">{filterKuf}</span>
+                  <span className="text-xs font-mono font-bold text-foreground">{filterKuf}</span>
                </div>
              </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-[#0a0a0a] border-white/5">
+        <Card className="bg-background border-border">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest text-center">Dializado</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-2">
-             <div className="text-center p-3 bg-white/5 rounded-lg border border-white/5">
+             <div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
                 <span className="block text-[10px] text-muted-foreground font-bold tracking-widest mb-1 uppercase">Flujo (Qd)</span>
-                <span className="text-sm font-mono font-bold text-white">500 <span className="text-[10px] text-muted-foreground ml-1">ml/min</span></span>
+                <span className="text-sm font-mono font-bold text-foreground">500 <span className="text-[10px] text-muted-foreground ml-1">ml/min</span></span>
              </div>
-             <div className="text-center p-3 bg-white/5 rounded-lg border border-white/5">
+             <div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
                 <span className="block text-[10px] text-muted-foreground font-bold tracking-widest mb-1 uppercase">Sodio</span>
                 <span className="text-sm font-mono font-bold text-sky-400">138 <span className="text-[10px] text-muted-foreground ml-1">mEq/L</span></span>
              </div>
-             <div className="text-center p-3 bg-white/5 rounded-lg border border-white/5">
+             <div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
                 <span className="block text-[10px] text-muted-foreground font-bold tracking-widest mb-1 uppercase">Bicarbonato</span>
                 <span className="text-sm font-mono font-bold text-emerald-400">32 <span className="text-[10px] text-muted-foreground ml-1">mEq/L</span></span>
              </div>
-             <div className="text-center p-3 bg-white/5 rounded-lg border border-white/5">
+             <div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
                 <span className="block text-[10px] text-muted-foreground font-bold tracking-widest mb-1 uppercase">Temperatura</span>
                 <span className="text-sm font-mono font-bold text-rose-400">36.0 <span className="text-[10px] text-muted-foreground ml-1">°C</span></span>
              </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-[#0a0a0a] border-white/5">
+        <Card className="bg-background border-border">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest text-center">Anticoagulación & Límites</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-2">
-             <div className="text-center p-3 bg-white/5 rounded-lg border border-white/5">
+             <div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
                 <span className="block text-[10px] text-muted-foreground font-bold tracking-widest mb-1 uppercase">Heparina</span>
-                <span className="text-sm font-mono font-bold text-white">1000 <span className="text-[10px] text-muted-foreground ml-1">UI (B)</span></span>
+                <span className="text-sm font-mono font-bold text-foreground">1000 <span className="text-[10px] text-muted-foreground ml-1">UI (B)</span></span>
              </div>
-             <div className="text-center p-3 bg-white/5 rounded-lg border border-white/5">
+             <div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
                 <span className="block text-[10px] text-muted-foreground font-bold tracking-widest mb-1 uppercase">Mant.</span>
-                <span className="text-sm font-mono font-bold text-white">500 <span className="text-[10px] text-muted-foreground ml-1">UI/h</span></span>
+                <span className="text-sm font-mono font-bold text-foreground">500 <span className="text-[10px] text-muted-foreground ml-1">UI/h</span></span>
              </div>
-             <div className="text-center p-3 bg-white/5 rounded-lg border border-white/5">
+             <div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
                 <span className="block text-[10px] text-muted-foreground font-bold tracking-widest mb-1 uppercase">Lim VP</span>
                 <span className="text-sm font-mono font-bold text-sky-500/50">250 <span className="text-[10px] text-muted-foreground ml-1">mmHg</span></span>
              </div>
-             <div className="text-center p-3 bg-white/5 rounded-lg border border-white/5">
+             <div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
                 <span className="block text-[10px] text-muted-foreground font-bold tracking-widest mb-1 uppercase">Lim PTM</span>
                 <span className="text-sm font-mono font-bold text-amber-500/50">300 <span className="text-[10px] text-muted-foreground ml-1">mmHg</span></span>
              </div>
           </CardContent>
         </Card>
-        <Card className="bg-[#0a0a0a] border-white/5">
+        <Card className="bg-background border-border">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest text-center">Historial de Máquina</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-2">
-             <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
+             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border">
                 <span className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase">Horas de Uso</span>
-                <span className="text-sm font-mono font-bold text-white">{(12500 + (patient?.id || 0) * 123).toLocaleString()} <span className="text-[10px] text-muted-foreground">h</span></span>
+                <span className="text-sm font-mono font-bold text-foreground">{(12500 + (patient?.id || 0) * 123).toLocaleString()} <span className="text-[10px] text-muted-foreground">h</span></span>
              </div>
-             <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5">
+             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border">
                 <span className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase">Último Mantenimiento</span>
                 <span className="text-xs font-mono text-emerald-400">Hace 12 días</span>
              </div>
-             <div className="p-3 bg-white/5 rounded-lg border border-white/5">
+             <div className="p-3 bg-muted/50 rounded-lg border border-border">
                 <span className="block text-[10px] text-muted-foreground font-bold tracking-widest mb-2 uppercase">Pacientes Compartidos</span>
                 <div className="flex gap-2">
                   <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-bold">MR</div>

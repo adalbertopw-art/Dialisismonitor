@@ -43,8 +43,8 @@ export function SodiumUFProfile({ patient, sessionDurationParams = 4, currentMin
   ];
 
   return (
-    <Card className="bg-[#0a0a0a] border-white/5 shadow-2xl mt-4 overflow-hidden relative">
-      <CardHeader className="py-4 px-6 border-b border-white/5 bg-gradient-to-r from-purple-500/10 to-transparent">
+    <Card className="bg-background border-border shadow-2xl mt-4 overflow-hidden relative">
+      <CardHeader className="py-4 px-6 border-b border-border bg-gradient-to-r from-purple-500/10 to-transparent">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <CardTitle className="text-[11px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-purple-400">
@@ -62,15 +62,15 @@ export function SodiumUFProfile({ patient, sessionDurationParams = 4, currentMin
           
           {/* Lab Integration Sidebar */}
           <div className="lg:col-span-1 space-y-4">
-            <h4 className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground border-b border-white/5 pb-2 flex items-center gap-1.5">
+            <h4 className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border pb-2 flex items-center gap-1.5">
               <FlaskConical size={12} className="text-amber-400" /> Analítica Pre-HD Reciente
             </h4>
             
             <div className="space-y-2">
               {labs.map((lab, i) => (
-                <div key={i} className="bg-[#111] p-3 rounded-lg border border-white/5 flex flex-col gap-1">
+                <div key={i} className="bg-card p-3 rounded-lg border border-border flex flex-col gap-1">
                   <div className="flex justify-between items-center text-[10px]">
-                    <span className="text-white/70 font-bold uppercase tracking-wider">{lab.name}</span>
+                    <span className="text-muted-foreground font-bold uppercase tracking-wider">{lab.name}</span>
                     <span className={`font-mono font-bold ${lab.color}`}>{lab.value} <span className="text-[8px] text-muted-foreground">{lab.unit}</span></span>
                   </div>
                   <div className="flex justify-between items-center text-[8px] uppercase text-muted-foreground tracking-widest">
@@ -120,16 +120,16 @@ export function SodiumUFProfile({ patient, sessionDurationParams = 4, currentMin
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="bg-[#000]/90 border border-white/10 p-3 rounded shadow-xl">
-                            <div className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
+                          <div className="bg-background/90 border border-border p-3 rounded shadow-xl">
+                            <div className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2 mb-2 pb-2 border-b border-border">
                               Minuto {payload[0].payload.minute} de {maxMins}
                             </div>
                             <div className="space-y-1.5">
-                              <div className="text-[11px] font-bold text-white flex justify-between gap-6 items-center">
+                              <div className="text-[11px] font-bold text-foreground flex justify-between gap-6 items-center">
                                 <span className="flex items-center gap-1.5 text-sky-400"><Droplet size={12}/> Tasa UF:</span>
                                 <span>{payload[0].value} <span className="text-[9px] text-muted-foreground">mL/h</span></span>
                               </div>
-                              <div className="text-[11px] font-bold text-white flex justify-between gap-6 items-center">
+                              <div className="text-[11px] font-bold text-foreground flex justify-between gap-6 items-center">
                                 <span className="flex items-center gap-1.5 text-purple-400"><Syringe size={12}/> Sodio (Na):</span>
                                 <span>{payload[1]?.value} <span className="text-[9px] text-muted-foreground">mEq/L</span></span>
                               </div>
@@ -177,18 +177,18 @@ export function SodiumUFProfile({ patient, sessionDurationParams = 4, currentMin
               </ResponsiveContainer>
             </div>
             
-            <div className="flex justify-between items-center bg-[#111] border border-white/5 rounded-lg p-3">
+            <div className="flex justify-between items-center bg-card border border-border rounded-lg p-3">
                <div className="flex items-center gap-3">
                  <div className="bg-sky-500/10 p-2 rounded-full">
                    <Droplet size={16} className="text-sky-400" />
                  </div>
                  <div>
                    <span className="block text-[8px] uppercase tracking-widest text-muted-foreground font-bold">Volumen Objetivo HD</span>
-                   <span className="text-sm font-mono font-bold text-white">{patient?.targetUfVolume || 2.5} L</span>
+                   <span className="text-sm font-mono font-bold text-foreground">{patient?.targetUfVolume || 2.5} L</span>
                  </div>
                </div>
                
-               <div className="h-6 w-px bg-white/10" />
+               <div className="h-6 w-px bg-muted" />
                
                <div className="flex items-center gap-3">
                  <div className="bg-purple-500/10 p-2 rounded-full">
@@ -196,7 +196,7 @@ export function SodiumUFProfile({ patient, sessionDurationParams = 4, currentMin
                  </div>
                  <div>
                    <span className="block text-[8px] uppercase tracking-widest text-muted-foreground font-bold">Acumulación de Sodio</span>
-                   <span className="text-sm font-mono font-bold text-white">Neutral (Perfil Equilibrado)</span>
+                   <span className="text-sm font-mono font-bold text-foreground">Neutral (Perfil Equilibrado)</span>
                  </div>
                </div>
             </div>

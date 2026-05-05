@@ -56,13 +56,13 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
   const clinicalImpact = (isDiabetic ? 10 : 0) + (previousInterventions > 0 ? 15 : 0) + (isCVC ? 15 : 0);
 
   return (
-    <Card className="bg-[#0a0a0a] border-white/5 shadow-2xl mt-4 overflow-hidden relative">
+    <Card className="bg-background border-border shadow-2xl mt-4 overflow-hidden relative">
       {/* Background glow based on risk */}
       {riskScore > 60 && (
         <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-[80px] pointer-events-none" />
       )}
       
-      <CardHeader className={`py-4 px-6 border-b border-white/5 bg-gradient-to-r from-background to-transparent relative z-10`}>
+      <CardHeader className={`py-4 px-6 border-b border-border bg-gradient-to-r from-background to-transparent relative z-10`}>
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <CardTitle className={`text-[11px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 ${colorClass}`}>
@@ -83,7 +83,7 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
           
           {/* Main Risk Score & Time to Event */}
           <div className="md:col-span-3 flex flex-col gap-4">
-            <div className="flex flex-col justify-center items-center p-4 bg-[#111] border border-white/5 rounded-lg flex-1">
+            <div className="flex flex-col justify-center items-center p-4 bg-card border border-border rounded-lg flex-1">
               <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground text-center mb-2">
                 Prob. {isCVC ? 'Disfunción/Infección' : 'Trombosis'} (30D)
               </span>
@@ -96,7 +96,7 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
                      stroke="currentColor"
                      strokeWidth="6"
                      fill="transparent"
-                     className="text-white/5"
+                     className="text-foreground/5"
                    />
                    <circle
                      cx="48"
@@ -125,47 +125,47 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
 
           {/* Explainability / SHAP Variables */}
           <div className="md:col-span-5 space-y-4">
-            <h4 className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground border-b border-white/5 pb-2">Variables Impulsoras de Riesgo (SHAP)</h4>
+            <h4 className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border pb-2">Variables Impulsoras de Riesgo (SHAP)</h4>
             
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[10px]">
-                  <div className="flex items-center gap-1.5 text-white/80">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
                     <ActivitySquare size={12} className="text-sky-400" /> Presión Venosa Dinámica ({venousPressure} mmHg)
                   </div>
                   <span className={`${pvImpact > 0 ? "text-rose-400 font-bold" : "text-emerald-400"}`}>
                     {pvImpact > 0 ? `+${pvImpact}% riesgo` : 'Estable'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between bg-[#111] h-2 rounded-full border border-white/5 overflow-hidden">
+                <div className="flex items-center justify-between bg-card h-2 rounded-full border border-border overflow-hidden">
                   <div className={`${pvImpact > 20 ? "bg-rose-500" : "bg-emerald-500"} h-full transition-all`} style={{ width: `${Math.max(pvImpact, 5)}%` }} />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[10px]">
-                  <div className="flex items-center gap-1.5 text-white/80">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Activity size={12} className="text-indigo-400" /> Flujo de Bomba Qb ({bloodFlow} ml/min)
                   </div>
                   <span className={`${bfImpact > 0 ? "text-rose-400 font-bold" : "text-emerald-400"}`}>
                     {bfImpact > 0 ? `+${bfImpact}% riesgo` : 'Adecuado'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between bg-[#111] h-2 rounded-full border border-white/5 overflow-hidden">
+                <div className="flex items-center justify-between bg-card h-2 rounded-full border border-border overflow-hidden">
                   <div className={`${bfImpact > 0 ? "bg-rose-500" : "bg-emerald-500"} h-full transition-all`} style={{ width: `${Math.max(bfImpact, 5)}%` }} />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[10px]">
-                  <div className="flex items-center gap-1.5 text-white/80">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Stethoscope size={12} className="text-amber-400" /> Perfil Clínico e Historial
                   </div>
                   <span className={`${clinicalImpact > 0 ? "text-amber-400 font-bold" : "text-emerald-400"}`}>
                     {clinicalImpact > 0 ? `+${clinicalImpact}% riesgo` : 'Bajo Riesgo'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between bg-[#111] h-2 rounded-full border border-white/5 overflow-hidden">
+                <div className="flex items-center justify-between bg-card h-2 rounded-full border border-border overflow-hidden">
                   <div className={`${clinicalImpact > 0 ? "bg-amber-500" : "bg-emerald-500"} h-full transition-all`} style={{ width: `${Math.max(clinicalImpact, 5)}%` }} />
                 </div>
               </div>
@@ -178,7 +178,7 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
 
           {/* AI Assessment & Counterfactuals */}
           <div className="md:col-span-4 space-y-4">
-             <h4 className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground border-b border-white/5 pb-2">Diagnóstico y What-If Analysis</h4>
+             <h4 className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border pb-2">Diagnóstico y What-If Analysis</h4>
              
              {riskScore > 60 ? (
                <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-lg space-y-3 flex flex-col h-full">
@@ -189,7 +189,7 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
                    </p>
                  </div>
                  <div className="bg-black/40 p-3 rounded-md border border-rose-500/10 mt-auto">
-                   <span className="block text-[9px] font-bold uppercase text-white/70 tracking-widest mb-2 border-b border-rose-500/20 pb-1">Análisis Contrafactual</span>
+                   <span className="block text-[9px] font-bold uppercase text-muted-foreground tracking-widest mb-2 border-b border-rose-500/20 pb-1">Análisis Contrafactual</span>
                    <ul className="text-[9px] text-rose-300/90 space-y-2">
                      <li className="flex items-start gap-1.5">
                        <span className="shrink-0 leading-none mt-0.5">•</span>
@@ -211,7 +211,7 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
                    </p>
                  </div>
                  <div className="bg-black/40 p-3 rounded-md border border-amber-500/10 mt-auto">
-                   <span className="block text-[9px] font-bold uppercase text-white/70 tracking-widest mb-2 border-b border-amber-500/20 pb-1">Análisis Contrafactual</span>
+                   <span className="block text-[9px] font-bold uppercase text-muted-foreground tracking-widest mb-2 border-b border-amber-500/20 pb-1">Análisis Contrafactual</span>
                    <ul className="text-[9px] text-amber-300/90 space-y-2">
                       <li className="flex items-start gap-1.5">
                        <span className="shrink-0 leading-none mt-0.5">•</span>
@@ -229,7 +229,7 @@ export function AVFThrombosisPredictor({ patient, lastReading }: any) {
                    </p>
                  </div>
                  <div className="bg-black/40 p-3 rounded-md border border-emerald-500/10 mt-auto">
-                   <span className="block text-[9px] font-bold uppercase text-white/70 tracking-widest mb-2 border-b border-emerald-500/20 pb-1">Mantenimiento</span>
+                   <span className="block text-[9px] font-bold uppercase text-muted-foreground tracking-widest mb-2 border-b border-emerald-500/20 pb-1">Mantenimiento</span>
                    <span className="text-[9px] text-emerald-300/90 block">Continuar con parámetros actuales. Re-evaluar modelo en 30 días o si PV cambia sustancialmente.</span>
                  </div>
                </div>

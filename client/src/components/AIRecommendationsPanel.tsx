@@ -46,13 +46,13 @@ export function AIRecommendationsPanel({
       </CardHeader>
       <CardContent className="p-4 grid gap-4 lg:grid-cols-2">
         {recommendations.map(rec => (
-          <div key={rec.id} className="bg-black/40 border border-white/5 rounded-lg p-4 flex flex-col justify-between hover:border-amber-500/30 transition-colors">
+          <div key={rec.id} className="bg-black/5 dark:bg-black/40 border border-border rounded-lg p-4 flex flex-col justify-between hover:border-amber-500/30 transition-colors">
             <div className="flex gap-3 mb-4">
               <div className={`p-2 rounded-full h-fit flex-none ${
-                rec.type === 'uf' ? 'bg-sky-500/10 text-sky-400' :
-                rec.type === 'temp' ? 'bg-rose-500/10 text-rose-400' :
-                rec.type === 'time' ? 'bg-emerald-500/10 text-emerald-400' :
-                'bg-purple-500/10 text-purple-400'
+                rec.type === 'uf' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400' :
+                rec.type === 'temp' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' :
+                rec.type === 'time' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                'bg-purple-500/10 text-purple-600 dark:text-purple-400'
               }`}>
                 {rec.type === 'uf' && <Droplets size={16} />}
                 {rec.type === 'temp' && <Thermometer size={16} />}
@@ -60,10 +60,10 @@ export function AIRecommendationsPanel({
                 {rec.type === 'other' && <AlertCircle size={16} />}
               </div>
               <div className="w-full">
-                <h4 className="text-[11px] font-bold text-white uppercase tracking-wider">{rec.title}</h4>
+                <h4 className="text-[11px] font-bold text-foreground uppercase tracking-wider">{rec.title}</h4>
                 <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">{rec.description}</p>
-                <div className="mt-2 inline-flex border py-1 px-2 border-white/10 rounded text-[10px] font-mono text-white/90 font-bold bg-[#111]">
-                  Ajuste sugerido: <span className="text-amber-400 ml-1">{rec.value}</span>
+                <div className="mt-2 inline-flex border py-1 px-2 border-border rounded text-[10px] font-mono text-foreground font-bold bg-card">
+                  Ajuste sugerido: <span className="text-amber-600 dark:text-amber-400 ml-1">{rec.value}</span>
                 </div>
               </div>
             </div>
@@ -73,7 +73,7 @@ export function AIRecommendationsPanel({
                 <Button 
                   size="sm" 
                   variant="outline"
-                  className="w-full h-8 text-[10px] uppercase font-bold tracking-widest bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                  className="w-full h-8 text-[10px] uppercase font-bold tracking-widest bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
                   onClick={() => {
                     toast({
                       title: "Recomendación Aceptada",
@@ -87,7 +87,7 @@ export function AIRecommendationsPanel({
                 <Button 
                   size="sm" 
                   variant="outline"
-                  className="w-full h-8 text-[10px] uppercase font-bold tracking-widest bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/30"
+                  className="w-full h-8 text-[10px] uppercase font-bold tracking-widest bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border-rose-500/30"
                   onClick={() => {
                     toast({
                       title: "Recomendación Rechazada",
@@ -102,7 +102,7 @@ export function AIRecommendationsPanel({
               </div>
 
               {/* Feedback Mechanism */}
-              <div className="flex flex-col gap-1.5 pt-3 border-t border-white/5">
+              <div className="flex flex-col gap-1.5 pt-3 border-t border-border">
                 <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground/70">
                   ¿Qué tan útil fue esta sugerencia?
                 </span>
@@ -111,7 +111,7 @@ export function AIRecommendationsPanel({
                     size="sm"
                     variant="ghost"
                     disabled={!!feedbackGiven[rec.id]}
-                    className={`h-7 px-2 text-[9px] font-bold ${feedbackGiven[rec.id] === 'útil' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white'}`}
+                    className={`h-7 px-2 text-[9px] font-bold ${feedbackGiven[rec.id] === 'útil' ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400' : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                     onClick={() => handleFeedback(rec.id, 'útil')}
                   >
                     👍 Útil
@@ -120,7 +120,7 @@ export function AIRecommendationsPanel({
                     size="sm"
                     variant="ghost"
                     disabled={!!feedbackGiven[rec.id]}
-                    className={`h-7 px-2 text-[9px] font-bold ${feedbackGiven[rec.id] === 'poco útil' ? 'bg-amber-500/20 text-amber-400' : 'bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white'}`}
+                    className={`h-7 px-2 text-[9px] font-bold ${feedbackGiven[rec.id] === 'poco útil' ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400' : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                     onClick={() => handleFeedback(rec.id, 'poco útil')}
                   >
                     😐 Poco útil
@@ -129,7 +129,7 @@ export function AIRecommendationsPanel({
                     size="sm"
                     variant="ghost"
                     disabled={!!feedbackGiven[rec.id]}
-                    className={`h-7 px-2 text-[9px] font-bold ${feedbackGiven[rec.id] === 'incorrecta' ? 'bg-rose-500/20 text-rose-400' : 'bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white'}`}
+                    className={`h-7 px-2 text-[9px] font-bold ${feedbackGiven[rec.id] === 'incorrecta' ? 'bg-rose-500/20 text-rose-700 dark:text-rose-400' : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                     onClick={() => handleFeedback(rec.id, 'incorrecta')}
                   >
                     👎 Incorrecta

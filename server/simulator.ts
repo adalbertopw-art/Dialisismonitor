@@ -316,6 +316,11 @@ export function initSimulator() {
     for (const patient of patients) {
       const state = storage.patientStates.get(patient.id);
       
+      const preDialysisData = await storage.getPreDialysis(patient.id);
+      if (!preDialysisData && state.minuteElapsed === 0) {
+        continue; // Wait for pre-dialysis valuation before starting session simulation
+      }
+      
       const totalMinutes = patient.sessionDuration * 60;
       
       // If session is complete, wait a bit then restart

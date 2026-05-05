@@ -45,6 +45,12 @@ export default function PreDialysisForm() {
     queryKey: [`/api/patients/${id}/pre-dialysis`],
   });
 
+  const { data: patientResponse } = useQuery({
+    queryKey: [`/api/patients/${id}`],
+  });
+  
+  const patient = patientResponse?.patient;
+
   useEffect(() => {
     if (initialData) setFormData(initialData);
   }, [initialData]);
@@ -53,6 +59,7 @@ export default function PreDialysisForm() {
     mutationFn: (data: any) => apiRequest("POST", `/api/patients/${id}/pre-dialysis`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/patients/${id}/pre-dialysis`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${id}`] });
       toast({ title: "Guardado", description: "Datos pre-diálisis registrados correctamente." });
       setLocation(`/paciente/${id}`);
     }
@@ -91,7 +98,16 @@ export default function PreDialysisForm() {
                   <Input 
                     id="weight" type="number" step="0.1" 
                     value={formData.weightPreDialysis} 
-                    onChange={(e) => updateField("weightPreDialysis", e.target.value)} 
+                    onChange={(e) => {
+                      const weightPre = parseFloat(e.target.value);
+                      updateField("weightPreDialysis", e.target.value);
+                      if (patient && !isNaN(weightPre)) {
+                        const idwg = (weightPre - patient.dryWeight).toFixed(1);
+                        if (parseFloat(idwg) > 0) {
+                          updateField("interdialyticWeightGain", idwg);
+                        }
+                      }
+                    }} 
                     className="bg-background"
                   />
                 </div>

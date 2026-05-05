@@ -10,8 +10,8 @@ export function ScientificEvidenceModal() {
           <BookOpen size={14} className="mr-2" /> Base Científica (Demo Congreso)
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl bg-[#0a0a0a] border-white/10 text-foreground shadow-2xl p-0 overflow-hidden">
-        <DialogHeader className="p-6 border-b border-white/10 bg-black/40">
+      <DialogContent className="max-w-4xl bg-background border-border text-foreground shadow-2xl p-0 overflow-hidden">
+        <DialogHeader className="p-6 border-b border-border bg-black/40">
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             <BrainCircuit className="text-indigo-400" />
             Modelo Predictivo de Hipotensión Intradialítica (HID)
@@ -27,11 +27,11 @@ export function ScientificEvidenceModal() {
             <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-sky-400 flex items-center gap-2">
               <Cpu size={16} /> Arquitectura del Modelo AI
             </h3>
-            <div className="bg-[#111] p-4 rounded-lg border border-white/5 space-y-3">
+            <div className="bg-card p-4 rounded-lg border border-border space-y-3">
               <p className="text-sm text-foreground/80 leading-relaxed">
                 El sistema utiliza una arquitectura <strong>Deep Learning basada en Transformers y Redes Convolucionales Temporales (TCN)</strong> entrenada con &gt;5 millones de sesiones de hemodiálisis. Analiza series temporales de monitoreo dinámico (1 lectura/segundo), variabilidad cardíaca y factores de depleción de volumen intra-vascular.
               </p>
-              <div className="h-[1px] w-full bg-white/5" />
+              <div className="h-[1px] w-full bg-muted/50" />
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-2xl font-mono text-emerald-400 font-bold">0.94</div>
@@ -50,7 +50,7 @@ export function ScientificEvidenceModal() {
             <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-400 flex items-center gap-2">
               <ShieldAlert size={16} /> Sistema de Alerta Temprana
             </h3>
-            <div className="bg-[#111] p-4 rounded-lg border border-white/5 space-y-3">
+            <div className="bg-card p-4 rounded-lg border border-border space-y-3">
               <p className="text-xs text-muted-foreground italic border-l-2 border-rose-500/50 pl-2">
                 "Deep Learning Strategies for Intradialytic Hypotension Prediction Using Continuous Monitoring"
                 <br />
@@ -67,7 +67,7 @@ export function ScientificEvidenceModal() {
             <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-400 flex items-center gap-2">
               <Activity size={16} /> Horizonte Predictivo de PA
             </h3>
-            <div className="bg-[#111] p-4 rounded-lg border border-white/5 space-y-3">
+            <div className="bg-card p-4 rounded-lg border border-border space-y-3">
               <p className="text-xs text-muted-foreground italic border-l-2 border-emerald-500/50 pl-2">
                 "Real-time Hemodynamic Profiling and Forecasting in End-Stage Renal Disease"
                 <br />
@@ -84,7 +84,7 @@ export function ScientificEvidenceModal() {
             <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-400 flex items-center gap-2">
               <Database size={16} /> Interoperabilidad y Factores
             </h3>
-            <div className="bg-[#111] p-4 rounded-lg border border-white/5 space-y-3">
+            <div className="bg-card p-4 rounded-lg border border-border space-y-3">
               <p className="text-xs text-muted-foreground italic border-l-2 border-amber-500/50 pl-2">
                 "BestShape Project: Machine learning for fluid management"
                 <br />
@@ -97,7 +97,7 @@ export function ScientificEvidenceModal() {
           </div>
         </div>
         
-        <div className="p-4 border-t border-white/10 bg-black/40 flex justify-end">
+        <div className="p-4 border-t border-border bg-black/40 flex justify-end">
           <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mr-auto flex items-center">
             * Para demostración en congreso. Software en fase de investigación.
           </p>

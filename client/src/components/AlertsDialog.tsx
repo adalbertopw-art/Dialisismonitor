@@ -51,7 +51,7 @@ export function AlertsDialog() {
 
   return (
     <Dialog open={showAlerts} onOpenChange={setShowAlerts}>
-      <DialogContent className="bg-[#0f1115] border-border text-foreground max-w-md">
+      <DialogContent className="bg-background border-border text-foreground max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-rose-500 uppercase tracking-widest font-bold text-sm select-none">
             <AlertTriangle size={18} /> Filtro: {alertFilter === "all" ? "Todos los pacientes" : alertFilter === "hid" ? "HID Activa" : alertFilter === "idht" ? "IDHTN Activa" : alertFilter === "highRisk" ? "Alto Riesgo" : "Alertas"}
@@ -89,7 +89,7 @@ export function AlertsDialog() {
                   </div>
                 </div>
                 <div className="flex flex-col items-end">
-                  <Badge className="bg-rose-500 text-white border-none text-[8px] h-4 font-bold tracking-widest px-2 mb-1">
+                  <Badge className="bg-rose-500 text-foreground border-none text-[8px] h-4 font-bold tracking-widest px-2 mb-1">
                     {p.phase === "hid" ? "HID" : "ALTA"}
                   </Badge>
                   <span className="text-[10px] font-mono font-bold text-rose-500">

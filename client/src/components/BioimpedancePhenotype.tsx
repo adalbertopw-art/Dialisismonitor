@@ -37,8 +37,8 @@ export function BioimpedancePhenotype({ patient, lastReading }: any) {
   }
 
   return (
-    <Card className="bg-[#0a0a0a] border-white/5 shadow-2xl overflow-hidden mt-4">
-      <CardHeader className="py-4 px-6 border-b border-white/5 bg-gradient-to-r from-emerald-500/10 to-transparent">
+    <Card className="bg-background border-border shadow-2xl overflow-hidden mt-4">
+      <CardHeader className="py-4 px-6 border-b border-border bg-gradient-to-r from-emerald-500/10 to-transparent">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <CardTitle className="text-[11px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-emerald-400">
@@ -62,14 +62,14 @@ export function BioimpedancePhenotype({ patient, lastReading }: any) {
             <h4 className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
               <Droplets size={12} className={ohColor} /> Sobrehidratación (OH) Dinámica
             </h4>
-            <div className="bg-[#111] border border-white/5 p-4 rounded-lg flex flex-col items-center justify-center relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-2 opacity-10 text-white">
+            <div className="bg-card border border-border p-4 rounded-lg flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-2 opacity-10 text-foreground">
                 <Droplets size={48} />
               </div>
               <span className={`text-3xl font-mono font-bold ${ohColor} transition-colors duration-500`}>
                 {currentOH}<span className="text-lg text-muted-foreground ml-1">L</span>
               </span>
-              <div className="flex justify-between w-full mt-2 pt-2 border-t border-white/5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+              <div className="flex justify-between w-full mt-2 pt-2 border-t border-border text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                 <span>Inicial: {initialData.overhydration} L</span>
                 <span>UF: -{ufRemoved.toFixed(2)} L</span>
               </div>
@@ -85,13 +85,13 @@ export function BioimpedancePhenotype({ patient, lastReading }: any) {
             <h4 className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
               <User size={12} className="text-amber-400" /> Composición Corporal (Fija)
             </h4>
-            <div className="bg-[#111] border border-white/5 rounded-lg p-4 space-y-4">
+            <div className="bg-card border border-border rounded-lg p-4 space-y-4">
                <div className="space-y-1">
                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                    <span>LTM (Masa Magra)</span>
                    <span className="text-foreground">{initialData.ltm} kg</span>
                  </div>
-                 <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                 <div className="w-full h-1.5 bg-muted/50 rounded-full overflow-hidden">
                    <div className="h-full bg-amber-500 w-[60%]" />
                  </div>
                </div>
@@ -101,7 +101,7 @@ export function BioimpedancePhenotype({ patient, lastReading }: any) {
                    <span>ATM (Masa Grasa)</span>
                    <span className="text-foreground">{initialData.atm} kg</span>
                  </div>
-                 <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                 <div className="w-full h-1.5 bg-muted/50 rounded-full overflow-hidden">
                    <div className="h-full bg-orange-500 w-[30%]" />
                  </div>
                </div>
@@ -113,22 +113,22 @@ export function BioimpedancePhenotype({ patient, lastReading }: any) {
             <h4 className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
               <Activity size={12} className="text-indigo-400" /> Distribución de Líquidos (Total)
             </h4>
-            <div className="bg-[#111] border border-white/5 rounded-lg p-4 space-y-3">
-              <div className="flex justify-between items-center border-b border-white/5 pb-2">
+            <div className="bg-card border border-border rounded-lg p-4 space-y-3">
+              <div className="flex justify-between items-center border-b border-border pb-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">ECW (Extracel.)</span>
                 <div className="text-right">
                   <span className="text-sm font-mono font-bold text-sky-400">{currentECW} L</span>
                   <span className="block text-[8px] text-muted-foreground/60 line-through">{initialData.ecw} L</span>
                 </div>
               </div>
-              <div className="flex justify-between items-center border-b border-white/5 pb-2">
+              <div className="flex justify-between items-center border-b border-border pb-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">ICW (Intracel.)</span>
                 <span className="text-sm font-mono font-bold text-indigo-400">{initialData.icw} L</span>
               </div>
               <div className="flex justify-between items-center pt-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">Total (TBW)</span>
                 <div className="text-right">
-                  <span className="text-sm font-mono font-bold text-white">{currentTBW} L</span>
+                  <span className="text-sm font-mono font-bold text-foreground">{currentTBW} L</span>
                   <span className="block text-[8px] text-muted-foreground/60 line-through">{initialData.tbw} L</span>
                 </div>
               </div>
@@ -164,7 +164,7 @@ export function BioimpedancePhenotype({ patient, lastReading }: any) {
 
         </div>
         
-        <div className="mt-6 flex justify-between items-center text-[9px] uppercase font-bold text-muted-foreground tracking-widest border-t border-white/5 pt-4">
+        <div className="mt-6 flex justify-between items-center text-[9px] uppercase font-bold text-muted-foreground tracking-widest border-t border-border pt-4">
           <span className="flex items-center gap-2">
             <HeartPulse size={12} className="text-emerald-500" />
             Monitoreo Continuo Integrado (BIA Dinámico)

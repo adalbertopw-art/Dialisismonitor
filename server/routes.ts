@@ -21,6 +21,94 @@ export function registerRoutes(app: Express) {
     res.json(results);
   });
 
+  app.post("/api/patients", async (req, res) => {
+    const patients = await storage.getPatients();
+    const newId = patients.length > 0 ? Math.max(...patients.map(p => p.id)) + 1 : 1;
+    
+    // Construct patient object based on Patient interface
+    const newPatient: any = {
+      id: newId,
+      name: req.body.name || `Paciente Ext ${newId}`,
+      age: parseInt(req.body.age) || 65,
+      sex: req.body.sex || "M",
+      bed: req.body.bed || `EXT-${newId}`,
+      dryWeight: parseFloat(req.body.dryWeight) || 70,
+      albumin: parseFloat(req.body.albumin) || 3.8,
+      hemoglobin: parseFloat(req.body.hemoglobin) || 11,
+      diabetic: parseInt(req.body.diabetic) || 1,
+      cardiopathy: parseInt(req.body.cardiopathy) || 0,
+      etiology: req.body.etiology || "N/A",
+      vascularAccessType: req.body.vascularAccessType || "N/A",
+      vascularAccessLocation: req.body.vascularAccessLocation || "N/A",
+      ejectionFraction: parseFloat(req.body.ejectionFraction) || 50,
+      transplantList: parseInt(req.body.transplantList) || 0,
+      autonomicDysfunction: parseInt(req.body.autonomicDysfunction) || 0,
+      targetUfVolume: parseFloat(req.body.targetUfVolume) || 2.5,
+      sessionDuration: parseFloat(req.body.sessionDuration) || 4,
+      bloodFlowRate: parseFloat(req.body.bloodFlowRate) || 300,
+      dialysateTemp: parseFloat(req.body.dialysateTemp) || 36.5,
+      dialysisVintage: parseInt(req.body.dialysisVintage) || 0,
+      sodiumDialysate: parseFloat(req.body.sodiumDialysate) || 138,
+      dialyzer: req.body.dialyzer || "Polyflux 170H",
+      historicalLabs: [{
+        date: new Date().toISOString().split('T')[0],
+        albumin: parseFloat(req.body.albumin) || 3.8,
+        hemoglobin: parseFloat(req.body.hemoglobin) || 11,
+        spKtv: parseFloat(req.body.spKtv) || 1.4,
+        phosphorus: parseFloat(req.body.phosphorus) || 4.5,
+        calcium: parseFloat(req.body.calcium) || 9.2,
+        pth: parseFloat(req.body.pth) || 300,
+        potassium: parseFloat(req.body.potassium) || 4.5,
+        bnp: parseFloat(req.body.bnp) || 120,
+        tnt: parseFloat(req.body.tnt) || 12,
+        pcr: parseFloat(req.body.pcr) || 0.5,
+        ferritin: parseFloat(req.body.ferritin) || 400,
+        tsat: parseFloat(req.body.tsat) || 30,
+        bunPre: parseFloat(req.body.bunPre) || 60,
+        bunPost: parseFloat(req.body.bunPost) || 15
+      }],
+      minuteElapsed: 0,
+      sessionProgress: 0,
+      phase: "stable",
+      hidEpisodes: 0,
+      idhtEpisodes: 0
+    };
+    
+    await storage.setPatient(newPatient);
+    
+    // Add initial reading
+    await storage.addReading(newId, {
+      id: 1,
+      patientId: newId,
+      sessionId: "init-" + newId,
+      timestamp: new Date().toISOString(),
+      minuteOfSession: 0,
+      sbp: 140,
+      dbp: 85,
+      hr: 75,
+      ufRemoved: 0,
+      hidEvent: 0,
+      idhtEvent: 0,
+      riskScore: 0,
+      riskCategory: "Normal",
+      idhtRiskScore: 0
+    });
+    
+    // Initialize simulator state for the new patient
+    storage.patientStates.set(newPatient.id, {
+      minuteElapsed: 0,
+      ufRemoved: 0,
+      phase: "stable",
+      phaseMinute: 0,
+      idhtPhase: "none",
+      hidEpisodes: 0,
+      idhtEpisodes: 0,
+      preSbp: 140
+    });
+    
+    res.json(newPatient);
+  });
+
   app.get("/api/patients/:id", async (req, res) => {
     const id = parseInt(req.params.id);
     const p = await storage.getPatient(id);
@@ -33,10 +121,10 @@ export function registerRoutes(app: Express) {
       ...p,
       currentReading: lastReading,
       sessionProgress: lastReading ? (lastReading.minuteOfSession / (p.sessionDuration * 60)) * 100 : 0,
-      minuteElapsed: state.minuteElapsed,
-      phase: state.phase,
-      hidEpisodes: state.hidEpisodes,
-      idhtEpisodes: state.idhtEpisodes
+      minuteElapsed: state?.minuteElapsed ?? 0,
+      phase: state?.phase ?? "stable",
+      hidEpisodes: state?.hidEpisodes ?? 0,
+      idhtEpisodes: state?.idhtEpisodes ?? 0
     };
     
     res.json({ patient: patientWithState, readings });
@@ -69,8 +157,42 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/patients/:id/pre-dialysis", async (req, res) => {
     const id = parseInt(req.params.id);
-    const data = { ...req.body, patientId: id, timestamp: new Date().toISOString() };
+    // Parse numeric fields for proper types
+    const data = { 
+      ...req.body, 
+      patientId: id, 
+      timestamp: new Date().toISOString(),
+      sbpPreDialysis: parseFloat(req.body.sbpPreDialysis) || 0,
+      dbpPreDialysis: parseFloat(req.body.dbpPreDialysis) || 0,
+      hrPreDialysis: parseFloat(req.body.hrPreDialysis) || 0,
+    };
     await storage.setPreDialysis(id, data);
+
+    const patientData = await storage.getPatient(id);
+    if (patientData && data.interdialyticWeightGain) {
+      const idwgFloat = parseFloat(data.interdialyticWeightGain);
+      if (!isNaN(idwgFloat) && idwgFloat > 0) {
+        patientData.targetUfVolume = idwgFloat;
+        await storage.setPatient(patientData);
+      }
+    }
+
+    // Update initial reading and state to reflect the pre-dialysis vitals
+    const state = storage.patientStates.get(id);
+    if (state && state.minuteElapsed === 0) {
+      state.preSbp = data.sbpPreDialysis;
+      
+      const readings = await storage.getReadings(id);
+      if (readings.length > 0) {
+        const latestReading = readings[readings.length - 1];
+        if (latestReading.minuteOfSession === 0) {
+          latestReading.sbp = data.sbpPreDialysis;
+          latestReading.dbp = data.dbpPreDialysis;
+          latestReading.hr = data.hrPreDialysis;
+        }
+      }
+    }
+
     res.json(data);
   });
 

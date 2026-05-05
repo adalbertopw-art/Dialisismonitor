@@ -47,8 +47,8 @@ export function SBARNoteGenerator({ patient, lastReading, activeFactors }: any) 
   };
 
   return (
-    <Card className="bg-[#0a0a0a] border-purple-500/20 shadow-[0_0_30px_rgba(168,85,247,0.05)] mt-4">
-      <CardHeader className="py-4 px-6 border-b border-white/5 bg-purple-500/5 flex flex-row items-center justify-between">
+    <Card className="bg-background border-purple-500/20 shadow-[0_0_30px_rgba(168,85,247,0.05)] mt-4">
+      <CardHeader className="py-4 px-6 border-b border-border bg-purple-500/5 flex flex-row items-center justify-between">
         <div className="space-y-1">
           <CardTitle className="text-[11px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-purple-400">
             <Sparkles size={16} /> Generación de Notas NLP (SBAR)
@@ -60,7 +60,7 @@ export function SBARNoteGenerator({ patient, lastReading, activeFactors }: any) 
         {!generatedNote && !isGenerating && (
           <Button 
             onClick={generateNote}
-            className="bg-purple-600 hover:bg-purple-500 h-8 px-4 text-[10px] font-bold uppercase tracking-widest text-white ml-auto"
+            className="bg-purple-600 hover:bg-purple-500 h-8 px-4 text-[10px] font-bold uppercase tracking-widest text-foreground ml-auto"
           >
             <FileText size={14} className="mr-2" /> Sintetizar Caso
           </Button>
@@ -86,7 +86,7 @@ export function SBARNoteGenerator({ patient, lastReading, activeFactors }: any) 
 
         {generatedNote && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div className="bg-[#111] border border-white/5 rounded-lg p-5 font-mono text-[11px] leading-relaxed text-muted-foreground whitespace-pre-wrap relative group">
+            <div className="bg-card border border-border rounded-lg p-5 font-mono text-[11px] leading-relaxed text-muted-foreground whitespace-pre-wrap relative group">
               {/* Animated formatting for SBAR */}
               {generatedNote.split('\n\n').map((section, idx) => {
                 const [title, ...contentLines] = section.split('\n');
@@ -109,7 +109,7 @@ export function SBARNoteGenerator({ patient, lastReading, activeFactors }: any) 
                 onClick={copyToClipboard}
                 className={cn(
                   "h-8 text-[9px] uppercase font-bold tracking-widest transition-colors",
-                  copied ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/50 hover:bg-emerald-500/30" : "border-white/10 hover:bg-white/5"
+                  copied ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/50 hover:bg-emerald-500/30" : "border-border hover:bg-muted/50"
                 )}
                >
                  {copied ? <CheckCircle2 size={12} className="mr-2" /> : <Copy size={12} className="mr-2" />}

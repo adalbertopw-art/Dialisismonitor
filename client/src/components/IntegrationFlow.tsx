@@ -67,7 +67,7 @@ export function IntegrationFlow() {
             <span>Status: TRANSMITIENDO</span>
             <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
           </div>
-          <ScrollArea className="flex-1 w-full rounded-md border border-white/5 bg-[#0a0a0a] p-4 relative">
+          <ScrollArea className="flex-1 w-full rounded-md border border-border bg-background p-4 relative">
             <div className="space-y-4">
               {incomingPayloads.map((payload, i) => (
                 <div key={i} className={cn("font-mono text-[10px] whitespace-pre-wrap transition-all duration-500", i === 0 ? "opacity-100 text-emerald-300 translate-x-0" : "opacity-40 text-emerald-300/50 translate-x-2")}>
@@ -90,9 +90,9 @@ export function IntegrationFlow() {
           <p className="text-[10px] text-muted-foreground mt-1 font-mono">TRANSFORMER + TCN INFERENCE</p>
         </CardHeader>
         <CardContent className="flex-1 p-6 flex flex-col gap-6 justify-center items-center relative z-10">
-             <div className="w-full bg-black/60 border border-white/10 rounded-xl p-5 flex flex-col items-center gap-3 text-center backdrop-blur-md">
+             <div className="w-full bg-black/60 border border-border rounded-xl p-5 flex flex-col items-center gap-3 text-center backdrop-blur-md">
                  <Router size={32} className="text-sky-400" />
-                 <h4 className="text-[11px] font-bold uppercase tracking-widest text-white">Recepción y Filtrado</h4>
+                 <h4 className="text-[11px] font-bold uppercase tracking-widest text-foreground">Recepción y Filtrado</h4>
                  <p className="text-[10px] text-muted-foreground leading-relaxed">Procesamiento de señal continua, eliminación de artefactos y alineación temporal a 1Hz. Validando rangos biológicos.</p>
              </div>
              
@@ -103,10 +103,10 @@ export function IntegrationFlow() {
 
              <div className="w-full bg-black/60 border border-purple-500/30 rounded-xl p-5 flex flex-col items-center gap-3 text-center backdrop-blur-md shadow-[0_0_15px_rgba(168,85,247,0.15)]">
                  <Activity size={32} className="text-purple-400" />
-                 <h4 className="text-[11px] font-bold uppercase tracking-widest text-white">Inferencia Biomatemática</h4>
+                 <h4 className="text-[11px] font-bold uppercase tracking-widest text-foreground">Inferencia Biomatemática</h4>
                  <p className="text-[10px] text-muted-foreground leading-relaxed">Cálculo de probabilidad de colapso cardiovascular (IDH) usando el modelo predictivo Ensemble. Generación de recomendaciones y/o comandos.</p>
                  
-                 <div className="mt-4 w-full p-3 bg-[#0a0a0a] border border-purple-500/20 rounded-md text-[10px] font-mono text-purple-300 text-left min-h-[60px]">
+                 <div className="mt-4 w-full p-3 bg-background border border-purple-500/20 rounded-md text-[10px] font-mono text-purple-300 text-left min-h-[60px]">
                     {aiAnalysis || "Esperando datos..."}
                  </div>
              </div>
@@ -131,14 +131,14 @@ export function IntegrationFlow() {
                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-300">Closed Loop</span>
                  <span className="text-[8px] text-muted-foreground uppercase">Envío Directo</span>
              </div>
-             <div className="bg-[#111] border border-white/10 rounded-lg p-3 flex flex-col items-center justify-center gap-2 text-center opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
+             <div className="bg-card border border-border rounded-lg p-3 flex flex-col items-center justify-center gap-2 text-center opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
                  <Stethoscope size={24} className="text-muted-foreground" />
                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Human-in-Loop</span>
                  <span className="text-[8px] text-muted-foreground uppercase">Aprobación Manual</span>
              </div>
           </div>
 
-          <ScrollArea className="flex-1 w-full rounded-md border border-rose-500/20 bg-[#0a0a0a] p-4 relative shadow-[inset_0_0_20px_rgba(244,63,94,0.05)]">
+          <ScrollArea className="flex-1 w-full rounded-md border border-rose-500/20 bg-background p-4 relative shadow-[inset_0_0_20px_rgba(244,63,94,0.05)]">
             <div className="space-y-4">
               {outgoingPayloads.length === 0 ? (
                  <div className="text-[10px] text-muted-foreground text-center mt-10 font-mono">ESPERANDO TRIGGERS...</div>

@@ -21,6 +21,8 @@ import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { PopulationRiskBoard } from "@/components/PopulationRiskBoard";
 import { IntegrationFlow } from "@/components/IntegrationFlow";
 
+import { AddPatientDialog } from "@/components/AddPatientDialog";
+
 export default function Dashboard() {
   const [time, setTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState("monitor");
@@ -75,20 +77,20 @@ export default function Dashboard() {
       {aiInterventions.length > 0 && (
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 flex items-start gap-4">
           <div className="bg-amber-500/20 p-2 rounded-full mt-1">
-            <ShieldCheck size={24} className="text-amber-500" />
+            <ShieldCheck size={24} className="text-amber-600 dark:text-amber-500" />
           </div>
           <div className="flex-1">
-            <h3 className="text-amber-500 font-bold text-sm uppercase tracking-widest flex items-center gap-2">
+            <h3 className="text-amber-600 dark:text-amber-500 font-bold text-sm uppercase tracking-widest flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
               Intervenciones Autónomas IA en Curso ({aiInterventions.length})
             </h3>
-            <p className="text-xs text-amber-500/80 mt-1 mb-3">La Inteligencia Artificial está ajustando la Ultrafiltración (UFR) y Temperatura del Dializado en tiempo real para prevenir eventos de hipotensión inminentes (HID).</p>
+            <p className="text-xs text-amber-700/80 dark:text-amber-500/80 mt-1 mb-3">La Inteligencia Artificial está ajustando la Ultrafiltración (UFR) y Temperatura del Dializado en tiempo real para prevenir eventos de hipotensión inminentes (HID).</p>
             <div className="flex flex-wrap gap-2">
               {aiInterventions.map(p => (
                 <div key={p.id} className="bg-amber-500/20 border border-amber-500/40 rounded px-3 py-1.5 flex items-center gap-2 text-xs cursor-pointer hover:bg-amber-500/30 transition-colors" onClick={() => setLocation(`/paciente/${p.id}`)}>
-                  <span className="font-bold text-amber-200">Cama {p.bed}</span>
-                  <span className="text-amber-500/70 border-l border-amber-500/30 pl-2">↓UFR</span>
-                  <span className="text-amber-500/70">↓T°d</span>
+                  <span className="font-bold text-amber-800 dark:text-amber-200">Cama {p.bed}</span>
+                  <span className="text-amber-700/70 dark:text-amber-500/70 border-l border-amber-500/30 pl-2">↓UFR</span>
+                  <span className="text-amber-700/70 dark:text-amber-500/70">↓T°d</span>
                 </div>
               ))}
             </div>
@@ -106,17 +108,20 @@ export default function Dashboard() {
             tiempo real
           </p>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-sm font-mono text-foreground/80">
-            {time.toLocaleTimeString("es-ES", {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-              hour12: true,
-            })}{" "}
-            p. m.
-          </span>
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-sm font-mono text-foreground/80">
+              {time.toLocaleTimeString("es-ES", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: true,
+              })}{" "}
+              p. m.
+            </span>
+          </div>
+          <AddPatientDialog />
         </div>
       </header>
 
@@ -128,7 +133,7 @@ export default function Dashboard() {
              "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
              activeTab === "monitor"
                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-               : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5"
+               : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted/50"
            )}
         >
            Monitor en Vivo
@@ -139,7 +144,7 @@ export default function Dashboard() {
              "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
              activeTab === "triage"
                ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-               : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5"
+               : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted/50"
            )}
         >
            Triage Poblacional
@@ -150,7 +155,7 @@ export default function Dashboard() {
              "flex-none px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full transition-all whitespace-nowrap border",
              activeTab === "arquitectura"
                ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
-               : "bg-[#111] text-muted-foreground border-white/5 hover:text-white hover:bg-white/5"
+               : "bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted/50"
            )}
         >
            Flujo de Datos y HL7 (Demo)
@@ -675,7 +680,7 @@ function PhaseBadge({ phase }: { phase: string }) {
   switch (phase) {
     case "stable":
       return (
-        <Badge className="bg-emerald-500 text-white uppercase text-[9px] font-bold px-2 py-0.5 h-auto border-none rounded-sm">
+        <Badge className="bg-emerald-500 text-foreground uppercase text-[9px] font-bold px-2 py-0.5 h-auto border-none rounded-sm">
           Estable
         </Badge>
       );
@@ -687,13 +692,13 @@ function PhaseBadge({ phase }: { phase: string }) {
       );
     case "hid":
       return (
-        <Badge className="bg-rose-500 text-white uppercase text-[9px] font-bold px-2 py-0.5 h-auto border-none rounded-sm">
+        <Badge className="bg-rose-500 text-foreground uppercase text-[9px] font-bold px-2 py-0.5 h-auto border-none rounded-sm">
           HID ACTIVA
         </Badge>
       );
     case "recovering":
       return (
-        <Badge className="bg-blue-600 text-white uppercase text-[9px] font-bold px-2 py-0.5 h-auto border-none rounded-sm">
+        <Badge className="bg-blue-600 text-foreground uppercase text-[9px] font-bold px-2 py-0.5 h-auto border-none rounded-sm">
           Recuperando
         </Badge>
       );

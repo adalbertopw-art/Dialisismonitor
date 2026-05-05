@@ -114,8 +114,8 @@ Plan:
           <FileText size={14} className="mr-2" /> Evolución
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-5xl bg-[#0a0a0a] border-white/10 shadow-2xl p-0 overflow-hidden flex flex-col h-[85vh]">
-        <DialogHeader className="p-6 border-b border-white/5 bg-emerald-500/5 shrink-0 flex flex-row items-center justify-between">
+      <DialogContent className="max-w-5xl bg-background border-border shadow-2xl p-0 overflow-hidden flex flex-col h-[85vh]">
+        <DialogHeader className="p-6 border-b border-border bg-emerald-500/5 shrink-0 flex flex-row items-center justify-between">
           <div className="space-y-1">
             <DialogTitle className="text-[14px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-emerald-400">
               <FileText size={16} /> Evolución Clínica Nefrológica
@@ -129,7 +129,7 @@ Plan:
               variant="outline" 
               size="sm"
               onClick={() => setViewHistory(!viewHistory)}
-              className="h-8 text-[10px] uppercase font-bold tracking-widest border-white/10 hover:bg-white/5"
+              className="h-8 text-[10px] uppercase font-bold tracking-widest border-border hover:bg-muted/50"
             >
               <History size={12} className="mr-2" />
               {viewHistory ? "Ver Evolución Actual" : "Historial y Sesiones"}
@@ -140,7 +140,7 @@ Plan:
                 onClick={copyToClipboard}
                 className={cn(
                   "h-8 text-[10px] uppercase font-bold tracking-widest transition-colors",
-                  copied ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30" : "bg-emerald-600 hover:bg-emerald-500 text-white"
+                  copied ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30" : "bg-emerald-600 hover:bg-emerald-500 text-foreground"
                 )}
               >
                 {copied ? <CheckCircle2 size={12} className="mr-2" /> : <Copy size={12} className="mr-2" />}
@@ -155,9 +155,9 @@ Plan:
             <ScrollArea className="h-full">
                <div className="p-6 space-y-4">
                  {historyNotes.map((item, i) => (
-                   <div key={i} className={cn("bg-[#111] border border-white/5 rounded-lg overflow-hidden transition-all duration-300", expandedNote === i ? "border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.05)]" : "")}>
+                   <div key={i} className={cn("bg-card border border-border rounded-lg overflow-hidden transition-all duration-300", expandedNote === i ? "border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.05)]" : "")}>
                      <div 
-                       className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5"
+                       className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/50"
                        onClick={() => setExpandedNote(expandedNote === i ? null : i)}
                      >
                        <div className="flex items-center gap-4">
@@ -170,27 +170,27 @@ Plan:
                      </div>
                      
                      {expandedNote === i && (
-                       <div className="p-5 border-t border-white/5 animate-in slide-in-from-top-2 duration-200">
+                       <div className="p-5 border-t border-border animate-in slide-in-from-top-2 duration-200">
                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-                           <div className="flex flex-col bg-black/40 p-3 rounded-md border border-white/5">
+                           <div className="flex flex-col bg-black/40 p-3 rounded-md border border-border">
                              <span className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">UF Total</span>
-                             <span className="text-[13px] font-mono font-bold text-white">{item.stats.uf}</span>
+                             <span className="text-[13px] font-mono font-bold text-foreground">{item.stats.uf}</span>
                            </div>
-                           <div className="flex flex-col bg-black/40 p-3 rounded-md border border-white/5">
+                           <div className="flex flex-col bg-black/40 p-3 rounded-md border border-border">
                              <span className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">PA Promedio</span>
-                             <span className="text-[13px] font-mono font-bold text-white">{item.stats.avgBP}</span>
+                             <span className="text-[13px] font-mono font-bold text-foreground">{item.stats.avgBP}</span>
                            </div>
-                           <div className="flex flex-col bg-black/40 p-3 rounded-md border border-white/5">
+                           <div className="flex flex-col bg-black/40 p-3 rounded-md border border-border">
                              <span className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">Peso Pre</span>
                              <span className="text-[13px] font-mono font-bold text-emerald-400/80">{item.stats.preWeight}</span>
                            </div>
-                           <div className="flex flex-col bg-black/40 p-3 rounded-md border border-white/5">
+                           <div className="flex flex-col bg-black/40 p-3 rounded-md border border-border">
                              <span className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">Peso Post</span>
                              <span className="text-[13px] font-mono font-bold text-sky-400/80">{item.stats.postWeight}</span>
                            </div>
-                           <div className="flex flex-col bg-black/40 p-3 rounded-md border border-white/5">
+                           <div className="flex flex-col bg-black/40 p-3 rounded-md border border-border">
                              <span className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">spKt/V</span>
-                             <span className="text-[13px] font-mono font-bold text-white">{item.stats.ktv}</span>
+                             <span className="text-[13px] font-mono font-bold text-foreground">{item.stats.ktv}</span>
                            </div>
                          </div>
                          
@@ -203,7 +203,7 @@ Plan:
                            </div>
                            <div>
                              <h4 className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground mb-2">Tendencia PA Sistólica</h4>
-                             <div className="bg-black/60 border border-white/5 rounded-lg p-3 h-[100px]">
+                             <div className="bg-black/60 border border-border rounded-lg p-3 h-[100px]">
                                <ResponsiveContainer width="100%" height="100%">
                                  <LineChart data={item.trendData}>
                                    <Line type="monotone" dataKey="sys" stroke="#10b981" strokeWidth={2} dot={{ r: 2, fill: '#10b981' }} />
@@ -225,7 +225,7 @@ Plan:
             </ScrollArea>
           ) : (
             <ScrollArea className="h-full p-6">
-              <div className="bg-[#111] border border-white/5 rounded-lg p-6 font-mono text-[12px] leading-relaxed text-muted-foreground whitespace-pre-wrap selection:bg-emerald-500/30">
+              <div className="bg-card border border-border rounded-lg p-6 font-mono text-[12px] leading-relaxed text-muted-foreground whitespace-pre-wrap selection:bg-emerald-500/30">
                 {note.split('\n\n').map((section, idx) => {
                   const lines = section.split('\n');
                   const title = lines[0];

@@ -70,11 +70,11 @@ export function PopulationRiskBoard({ patients }: { patients: Patient[] }) {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-[#111] border border-white/10 rounded-lg p-3 shadow-xl backdrop-blur-md">
-          <p className="font-bold text-white text-sm mb-1">{data.name}</p>
+        <div className="bg-card border border-border rounded-lg p-3 shadow-xl backdrop-blur-md">
+          <p className="font-bold text-foreground text-sm mb-1">{data.name}</p>
           <div className="flex flex-col text-xs text-muted-foreground gap-1">
-            <span>Riesgo Hosp. 30d: <strong className="text-white">{data.y}%</strong></span>
-            <span>Riesgo Mort. 6m: <strong className="text-white">{data.x}%</strong></span>
+            <span>Riesgo Hosp. 30d: <strong className="text-foreground">{data.y}%</strong></span>
+            <span>Riesgo Mort. 6m: <strong className="text-foreground">{data.x}%</strong></span>
           </div>
         </div>
       );

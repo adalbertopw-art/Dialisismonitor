@@ -12,9 +12,9 @@ export function PatientClinicalSummary({ patient }: any) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
       {/* Historical Labs */}
-      <Card className="bg-[#0a0a0a] border-white/5 shadow-xl">
-        <CardHeader className="py-4 px-6 border-b border-white/5 bg-gradient-to-r from-sky-500/5 to-transparent">
-          <CardTitle className="text-[11px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-sky-400">
+      <Card className="bg-background border-border shadow-xl">
+        <CardHeader className="py-4 px-6 border-b border-border bg-gradient-to-r from-sky-500/5 to-transparent">
+          <CardTitle className="text-[11px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-sky-600 dark:text-sky-400">
             <Droplet size={16} /> Histórico de Laboratorios
           </CardTitle>
           <CardDescription className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground/70">
@@ -24,8 +24,8 @@ export function PatientClinicalSummary({ patient }: any) {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-black/40">
-                <TableRow className="border-white/5 hover:bg-transparent">
+              <TableHeader className="bg-black/5 dark:bg-black/40">
+                <TableRow className="border-border hover:bg-transparent">
                   <TableHead className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground h-8">Fecha</TableHead>
                   <TableHead className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground h-8 text-center">Hb</TableHead>
                   <TableHead className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground h-8 text-center">Alb</TableHead>
@@ -38,14 +38,14 @@ export function PatientClinicalSummary({ patient }: any) {
               </TableHeader>
               <TableBody>
                 {labs.length > 0 ? labs.map((lab: any, i: number) => (
-                  <TableRow key={i} className="border-white/5 hover:bg-white/5 transition-colors">
+                  <TableRow key={i} className="border-border hover:bg-muted/50 transition-colors">
                     <TableCell className="text-[10px] font-mono text-muted-foreground py-2">{lab.date}</TableCell>
                     <TableCell className={`text-[10px] font-mono text-center py-2 ${lab.hemoglobin < 10 ? 'text-rose-400' : 'text-emerald-400'}`}>{lab.hemoglobin}</TableCell>
                     <TableCell className={`text-[10px] font-mono text-center py-2 ${lab.albumin < 3.8 ? 'text-amber-400' : 'text-emerald-400'}`}>{lab.albumin}</TableCell>
                     <TableCell className={`text-[10px] font-mono text-center py-2 ${lab.phosphorus > 5.5 ? 'text-rose-400' : 'text-sky-400'}`}>{lab.phosphorus}</TableCell>
-                    <TableCell className={`text-[10px] font-mono text-center py-2 ${lab.calcium > 10.2 || lab.calcium < 8.4 ? 'text-amber-400' : 'text-white'}`}>{lab.calcium}</TableCell>
-                    <TableCell className={`text-[10px] font-mono text-center py-2 ${lab.pth > 300 ? 'text-rose-400' : 'text-white'}`}>{lab.pth}</TableCell>
-                    <TableCell className={`text-[10px] font-mono text-center py-2 ${lab.potassium > 5.5 ? 'text-rose-400' : 'text-white'}`}>{lab.potassium}</TableCell>
+                    <TableCell className={`text-[10px] font-mono text-center py-2 ${lab.calcium > 10.2 || lab.calcium < 8.4 ? 'text-amber-400' : 'text-foreground'}`}>{lab.calcium}</TableCell>
+                    <TableCell className={`text-[10px] font-mono text-center py-2 ${lab.pth > 300 ? 'text-rose-400' : 'text-foreground'}`}>{lab.pth}</TableCell>
+                    <TableCell className={`text-[10px] font-mono text-center py-2 ${lab.potassium > 5.5 ? 'text-rose-400' : 'text-foreground'}`}>{lab.potassium}</TableCell>
                     <TableCell className={`text-[10px] font-mono text-center py-2 ${lab.spKtv < 1.2 ? 'text-rose-400' : 'text-emerald-400'}`}>{lab.spKtv}</TableCell>
                   </TableRow>
                 )) : (
@@ -60,9 +60,9 @@ export function PatientClinicalSummary({ patient }: any) {
       </Card>
 
       {/* Medications */}
-      <Card className="bg-[#0a0a0a] border-white/5 shadow-xl">
-        <CardHeader className="py-4 px-6 border-b border-white/5 bg-gradient-to-r from-amber-500/5 to-transparent">
-          <CardTitle className="text-[11px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-amber-400">
+      <Card className="bg-background border-border shadow-xl">
+        <CardHeader className="py-4 px-6 border-b border-border bg-gradient-to-r from-amber-500/5 to-transparent">
+          <CardTitle className="text-[11px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-amber-600 dark:text-amber-400">
             <Pill size={16} /> Medicación Actual
           </CardTitle>
           <CardDescription className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground/70">
@@ -72,8 +72,8 @@ export function PatientClinicalSummary({ patient }: any) {
         <CardContent className="p-0">
           <div className="overflow-x-auto max-h-[220px] overflow-y-auto custom-scrollbar">
             <Table>
-              <TableHeader className="bg-black/40 sticky top-0 z-10">
-                <TableRow className="border-white/5 hover:bg-transparent">
+              <TableHeader className="bg-black/5 dark:bg-black/40 sticky top-0 z-10">
+                <TableRow className="border-border hover:bg-transparent">
                   <TableHead className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground h-8 w-1/2">Fármaco</TableHead>
                   <TableHead className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground h-8">Dosis</TableHead>
                   <TableHead className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground h-8">Frecuencia</TableHead>
@@ -81,11 +81,11 @@ export function PatientClinicalSummary({ patient }: any) {
               </TableHeader>
               <TableBody>
                 {meds.length > 0 ? meds.map((med: any, i: number) => (
-                  <TableRow key={i} className="border-white/5 hover:bg-white/5 transition-colors">
-                    <TableCell className="text-[11px] font-medium text-amber-100/90 py-2.5">
+                  <TableRow key={i} className="border-border hover:bg-muted/50 transition-colors">
+                    <TableCell className="text-[11px] font-medium text-amber-600 dark:text-amber-100/90 py-2.5">
                       {med.name}
                     </TableCell>
-                    <TableCell className="text-[10px] font-mono text-white/80 py-2.5">
+                    <TableCell className="text-[10px] font-mono text-muted-foreground py-2.5">
                       {med.dose}
                     </TableCell>
                     <TableCell className="text-[9px] uppercase tracking-widest text-muted-foreground/80 py-2.5">

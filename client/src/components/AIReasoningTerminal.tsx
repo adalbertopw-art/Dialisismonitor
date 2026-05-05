@@ -54,8 +54,8 @@ export function AIReasoningTerminal({ patient, lastReading }: any) {
   }, [logs]);
 
   return (
-    <Card className="bg-[#0a0a0a] border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.05)] overflow-hidden h-full flex flex-col">
-      <CardHeader className="py-4 px-6 border-b border-white/5 bg-emerald-500/5 relative overflow-hidden shrink-0">
+    <Card className="bg-background border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.05)] overflow-hidden h-full flex flex-col">
+      <CardHeader className="py-4 px-6 border-b border-border bg-emerald-500/5 relative overflow-hidden shrink-0">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
         <div className="flex justify-between items-center relative z-10">
           <div className="space-y-1">
@@ -70,7 +70,7 @@ export function AIReasoningTerminal({ patient, lastReading }: any) {
         </div>
       </CardHeader>
       
-      <CardContent className="p-0 flex-1 overflow-hidden bg-black/40 flex flex-col">
+      <CardContent className="p-0 flex-1 overflow-hidden bg-muted dark:bg-black/40 flex flex-col">
         <ScrollArea className="flex-1" ref={scrollRef}>
           <div className="font-mono text-[11px] leading-relaxed space-y-1.5 w-full p-4">
             {logs.length === 0 ? (
@@ -79,11 +79,11 @@ export function AIReasoningTerminal({ patient, lastReading }: any) {
               </div>
             ) : (
               logs.map((log, i) => {
-                let colorClass = "text-emerald-400/80";
-                if (log.includes("[ALERTA]")) colorClass = "text-rose-400 font-bold";
-                else if (log.includes("[RECOMENDACIÓN]")) colorClass = "text-sky-400 font-bold";
-                else if (log.includes("[ANÁLISIS]")) colorClass = "text-amber-400";
-                else if (log.includes("-------")) colorClass = "text-muted-foreground/30";
+                let colorClass = "text-emerald-700 dark:text-emerald-400/80";
+                if (log.includes("[ALERTA]")) colorClass = "text-rose-700 dark:text-rose-400 font-bold";
+                else if (log.includes("[RECOMENDACIÓN]")) colorClass = "text-sky-700 dark:text-sky-400 font-bold";
+                else if (log.includes("[ANÁLISIS]")) colorClass = "text-amber-700 dark:text-amber-400";
+                else if (log.includes("-------")) colorClass = "text-muted-foreground/50";
                 
                 return (
                   <div key={i} className={`break-words ${colorClass}`}>

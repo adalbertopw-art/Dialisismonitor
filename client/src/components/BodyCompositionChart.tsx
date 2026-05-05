@@ -19,10 +19,10 @@ export function BodyCompositionChart({ patient, lastReading }: any) {
   ];
 
   return (
-    <Card className="bg-[#0a0a0a] border-white/5 shadow-2xl mt-4 overflow-hidden">
-      <CardHeader className="py-4 px-6 border-b border-white/5 bg-gradient-to-r from-emerald-500/5 to-transparent">
+    <Card className="bg-background border-border shadow-2xl mt-4 overflow-hidden">
+      <CardHeader className="py-4 px-6 border-b border-border bg-gradient-to-r from-emerald-500/5 to-transparent">
         <div className="space-y-1">
-          <CardTitle className="text-[11px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-white">
+          <CardTitle className="text-[11px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 text-foreground">
             <Activity size={16} className="text-emerald-400" /> Composición Corporal y Distribución de Líquidos (Dinámico)
           </CardTitle>
           <CardDescription className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground/70">
@@ -56,10 +56,10 @@ export function BodyCompositionChart({ patient, lastReading }: any) {
                     if (active && payload && payload.length) {
                       const { name, rawValue, ideal, unit, pct } = payload[0].payload;
                       return (
-                        <div className="bg-[#111] border border-white/10 p-4 rounded-lg shadow-xl outline-none">
+                        <div className="bg-card border border-border p-4 rounded-lg shadow-xl outline-none">
                           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">{name}</p>
                           <div className="flex items-end gap-2 mb-1">
-                            <span className="text-xl font-mono font-bold text-white leading-none">{rawValue} {unit}</span>
+                            <span className="text-xl font-mono font-bold text-foreground leading-none">{rawValue} {unit}</span>
                             <span className="text-[10px] font-bold mb-0.5" style={{ color: payload[0].payload.fill }}>
                               ({pct}%)
                             </span>
@@ -91,7 +91,7 @@ export function BodyCompositionChart({ patient, lastReading }: any) {
             </ResponsiveContainer>
           </div>
           
-          <div className="space-y-4 md:border-l md:border-white/5 md:pl-6 hidden md:block">
+          <div className="space-y-4 md:border-l md:border-border md:pl-6 hidden md:block">
             <h4 className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mb-4">Análisis de Desviaciones</h4>
             <div className="space-y-4">
               <div className="bg-sky-500/10 border border-sky-500/20 p-3 rounded-lg transition-colors p-3">

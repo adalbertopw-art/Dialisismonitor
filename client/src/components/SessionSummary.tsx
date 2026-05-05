@@ -44,7 +44,7 @@ export function SessionSummary({
          
          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
            {/* Estado Post-Sesión */}
-           <div className="bg-white/5 rounded-lg p-3 border border-white/5">
+           <div className="bg-muted/50 rounded-lg p-3 border border-border">
              <div className="flex items-center gap-2 mb-2">
                <Activity size={14} className="text-muted-foreground" />
                <span className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Estado Final</span>
@@ -52,13 +52,13 @@ export function SessionSummary({
              <div className="space-y-1">
                <div className="flex justify-between items-center">
                  <span className="text-[11px] text-muted-foreground">PA:</span>
-                 <span className={cn("text-xs font-mono font-bold", isHighRisk ? "text-rose-400" : "text-white")}>
+                 <span className={cn("text-xs font-mono font-bold", isHighRisk ? "text-rose-400" : "text-foreground")}>
                    {lastReading.sbp}/{lastReading.dbp} mmHg
                  </span>
                </div>
-               <div className="flex justify-between items-center pt-1 border-t border-white/5 mt-1">
+               <div className="flex justify-between items-center pt-1 border-t border-border mt-1">
                  <span className="text-[11px] text-muted-foreground">UF (Aprox):</span>
-                 <span className="text-xs font-mono font-bold text-white">
+                 <span className="text-xs font-mono font-bold text-foreground">
                    {((patient.ufGoal || 2.5) * 1000).toFixed(0)} mL
                  </span>
                </div>

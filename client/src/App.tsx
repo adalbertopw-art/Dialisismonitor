@@ -12,12 +12,14 @@ import Dashboard from "@/pages/Dashboard";
 import PatientDetail from "@/pages/PatientDetail";
 import PreDialysisForm from "@/pages/PreDialysisForm";
 import Layout from "@/components/Layout";
+import { DisclaimerModal } from "@/components/DisclaimerModal";
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router hook={useHashLocation}>
         <Layout>
+          <DisclaimerModal />
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/paciente/:id" component={PatientDetail} />
