@@ -1,4 +1,4 @@
-import { storage } from "./storage";
+import { getStorage, sessions, MemStorage } from "./storage";
 import { Patient, SessionReading } from "../shared/types";
 
 const PATIENT_PROFILES = [
@@ -141,7 +141,7 @@ function calculateIdhtRiskScore(sbp: number, hr: number, patient: Patient, preSb
 
 const noise = () => Math.round((Math.random() - 0.5) * 6);
 
-export function initSimulator() {
+export function initSimulatorForStorage(storage: MemStorage, sessionId: string) {
   function generateMockLabs() {
     const labs = [];
     for (let i = 0; i < 4; i++) {
@@ -310,14 +310,23 @@ export function initSimulator() {
       });
     }
   });
+}
 
+export function initSimulator() {
   setInterval(async () => {
-    const patients = await storage.getPatients();
-    for (const patient of patients) {
-      const state = storage.patientStates.get(patient.id);
-      
-      const preDialysisData = await storage.getPreDialysis(patient.id);
-      if (!preDialysisData && state.minuteElapsed === 0) {
+    for (const [sessionId, storage] of Array.from(sessions.entries())) {
+      // Cleanup old sessions (not accessed in 12 hours)
+      if (Date.now() - storage.lastAccessed > 12 * 60 * 60 * 1000) {
+        sessions.delete(sessionId);
+        continue;
+      }
+
+      const patients = await storage.getPatients();
+      for (const patient of patients) {
+        const state = storage.patientStates.get(patient.id);
+        
+        const preDialysisData = await storage.getPreDialysis(patient.id);
+        if (!preDialysisData && state.minuteElapsed === 0) {
         continue; // Wait for pre-dialysis valuation before starting session simulation
       }
       
@@ -494,7 +503,7 @@ export function initSimulator() {
         const reading: SessionReading = {
           id: Date.now() + patient.id,
           patientId: patient.id,
-          sessionId: "session-" + new Date().toISOString().split("T")[0],
+          sessionId: sessionId || "init-" + patient.id,
           timestamp: new Date().toISOString(),
           minuteOfSession: state.minuteElapsed,
           sbp,
@@ -511,5 +520,6 @@ export function initSimulator() {
         storage.addReading(patient.id, reading);
       }
     }
+  } // end of session loop
   }, 3000);
 }

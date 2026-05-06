@@ -22,10 +22,33 @@ import { PopulationRiskBoard } from "@/components/PopulationRiskBoard";
 import { IntegrationFlow } from "@/components/IntegrationFlow";
 
 import { AddPatientDialog } from "@/components/AddPatientDialog";
+import { EditPatientDialog } from "@/components/EditPatientDialog";
+import { useAdminMode } from "@/hooks/useAdminMode";
+import { useAiAutopilot } from "@/hooks/useAiAutopilot";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { Trash2, Edit } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Dashboard() {
   const [time, setTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState("monitor");
+  const isAdmin = useAdminMode();
+  const aiAutopilot = useAiAutopilot();
+  const [editingPatient, setEditingPatient] = useState<any>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const deletePatientMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/patients/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      toast({ title: "Paciente eliminado", description: "El paciente ha sido retirado de la simulación.", variant: "destructive" });
+    }
+  });
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -82,9 +105,13 @@ export default function Dashboard() {
           <div className="flex-1">
             <h3 className="text-amber-600 dark:text-amber-500 font-bold text-sm uppercase tracking-widest flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              Intervenciones Autónomas IA en Curso ({aiInterventions.length})
+              {aiAutopilot ? `Intervenciones Autónomas IA en Curso (${aiInterventions.length})` : `Intervenciones IA Pendientes de Aprobación (${aiInterventions.length})`}
             </h3>
-            <p className="text-xs text-amber-700/80 dark:text-amber-500/80 mt-1 mb-3">La Inteligencia Artificial está ajustando la Ultrafiltración (UFR) y Temperatura del Dializado en tiempo real para prevenir eventos de hipotensión inminentes (HID).</p>
+            <p className="text-xs text-amber-700/80 dark:text-amber-500/80 mt-1 mb-3">
+              {aiAutopilot 
+                ? "La Inteligencia Artificial está ajustando la Ultrafiltración (UFR) y Temperatura del Dializado de forma autónoma en tiempo real." 
+                : "La Inteligencia Artificial sugiere ajustar la Ultrafiltración (UFR) y Temperatura del Dializado. Requieren aprobación antes de aplicarse."}
+            </p>
             <div className="flex flex-wrap gap-2">
               {aiInterventions.map(p => (
                 <div key={p.id} className="bg-amber-500/20 border border-amber-500/40 rounded px-3 py-1.5 flex items-center gap-2 text-xs cursor-pointer hover:bg-amber-500/30 transition-colors" onClick={() => setLocation(`/paciente/${p.id}`)}>
@@ -122,6 +149,7 @@ export default function Dashboard() {
             </span>
           </div>
           <AddPatientDialog />
+          <EditPatientDialog patient={editingPatient} open={!!editingPatient} setOpen={(v: boolean) => !v && setEditingPatient(null)} />
         </div>
       </header>
 
@@ -427,7 +455,7 @@ export default function Dashboard() {
                       <div className="flex flex-col gap-0.5 text-[10px] font-mono leading-none w-24">
                         {isAiIntervening && (
                           <div className="flex items-center gap-1 text-[8px] font-bold text-amber-500 uppercase pb-1 tracking-widest animate-pulse">
-                            <ShieldCheck size={10} /> IA Intervino
+                            <ShieldCheck size={10} /> {aiAutopilot ? "IA Intervino" : "Sugiere IA"}
                           </div>
                         )}
                         <div className="flex items-center justify-between mt-0.5">
@@ -440,8 +468,8 @@ export default function Dashboard() {
                               isAiIntervening ? "text-amber-500" : (autoTemp >= 36.5 ? "text-amber-500" : "text-emerald-500")
                             )}
                           >
-                            {isAiIntervening && autoTemp < patient.dialysateTemp && <span className="line-through text-muted-foreground mr-1">{patient.dialysateTemp}°</span>}
-                            {autoTemp.toFixed(1)}°
+                            {isAiIntervening && autoTemp < patient.dialysateTemp && aiAutopilot && <span className="line-through text-muted-foreground mr-1">{patient.dialysateTemp}°</span>}
+                            {aiAutopilot || !isAiIntervening ? autoTemp.toFixed(1) + "°" : `${patient.dialysateTemp.toFixed(1)}° (${autoTemp.toFixed(1)}°)`}
                           </span>
                         </div>
                         <div className="flex items-center justify-between mt-0.5">
@@ -476,7 +504,7 @@ export default function Dashboard() {
                         </span>
                         <div className="flex flex-col mt-1">
                           {isAiIntervening && (
-                            <span className="text-[8px] font-bold text-amber-500 uppercase mb-0.5">Ajuste IA (-{(ufrRaw - autoUfr).toFixed(1)})</span>
+                            <span className="text-[8px] font-bold text-amber-500 uppercase mb-0.5">{aiAutopilot ? "Ajuste IA" : "Sugiere IA"} (-{(ufrRaw - autoUfr).toFixed(1)})</span>
                           )}
                           <span
                             className={cn(
@@ -485,8 +513,8 @@ export default function Dashboard() {
                             )}
                           >
                             <span className="flex items-center gap-1">
-                              UFR {isAiIntervening && <span className="line-through text-muted-foreground text-[8px]">{ufrRaw.toFixed(1)}</span>} 
-                              <span className={cn(isAiIntervening && "animate-pulse")}>{autoUfr.toFixed(1)}</span>
+                              UFR {isAiIntervening && aiAutopilot && <span className="line-through text-muted-foreground text-[8px]">{ufrRaw.toFixed(1)}</span>} 
+                              <span className={cn(isAiIntervening && "animate-pulse")}>{aiAutopilot || !isAiIntervening ? autoUfr.toFixed(1) : `${ufrRaw.toFixed(1)} (${autoUfr.toFixed(1)})`}</span>
                             </span>
                           </span>
                         </div>
@@ -561,11 +589,38 @@ export default function Dashboard() {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="w-8 text-center">
-                      <ChevronRight
-                        size={14}
-                        className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mx-auto"
-                      />
+                    <TableCell className="w-8 text-center" onClick={(e) => { if (isAdmin) e.stopPropagation(); }}>
+                      {isAdmin ? (
+                        <div className="flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            className="p-1 rounded bg-sky-500/10 text-sky-500 hover:bg-sky-500/20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingPatient(patient);
+                            }}
+                            title="Editar paciente"
+                          >
+                            <Edit size={12} />
+                          </button>
+                          <button
+                            className="p-1 rounded bg-rose-500/10 text-rose-500 hover:bg-rose-500/20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm("¿Seguro que desea eliminar a este paciente de la simulación?")) {
+                                deletePatientMutation.mutate(patient.id);
+                              }
+                            }}
+                            title="Eliminar paciente"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      ) : (
+                        <ChevronRight
+                          size={14}
+                          className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mx-auto"
+                        />
+                      )}
                     </TableCell>
                   </TableRow>
                 );

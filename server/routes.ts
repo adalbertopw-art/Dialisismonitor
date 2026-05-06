@@ -1,12 +1,18 @@
 import { Express } from "express";
-import { storage } from "./storage";
+import { getStorage } from "./storage";
 
 export function registerRoutes(app: Express) {
-  app.get("/api/patients", async (_req, res) => {
-    const patients = await storage.getPatients();
-    const results = await Promise.all(patients.map(async (p) => {
-      const readings = await storage.getReadings(p.id);
-      const state = storage.patientStates.get(p.id);
+  // Middleware to inject storage into request
+  app.use((req, res, next) => {
+    const sessionId = (req.headers["x-session-id"] as string) || "default";
+    (req as any).storage = getStorage(sessionId);
+    next();
+  });
+  app.get("/api/patients", async (req, res) => {
+    const patients = await (req as any).storage.getPatients();
+    const results = await Promise.all(patients.map(async (p: any) => {
+      const readings = await (req as any).storage.getReadings(p.id);
+      const state = (req as any).storage.patientStates.get(p.id);
       const lastReading = readings[readings.length - 1];
       return {
         ...p,
@@ -22,8 +28,8 @@ export function registerRoutes(app: Express) {
   });
 
   app.post("/api/patients", async (req, res) => {
-    const patients = await storage.getPatients();
-    const newId = patients.length > 0 ? Math.max(...patients.map(p => p.id)) + 1 : 1;
+    const patients = await (req as any).storage.getPatients();
+    const newId = patients.length > 0 ? Math.max(...patients.map((p: any) => p.id)) + 1 : 1;
     
     // Construct patient object based on Patient interface
     const newPatient: any = {
@@ -74,10 +80,10 @@ export function registerRoutes(app: Express) {
       idhtEpisodes: 0
     };
     
-    await storage.setPatient(newPatient);
+    await (req as any).storage.setPatient(newPatient);
     
     // Add initial reading
-    await storage.addReading(newId, {
+    await (req as any).storage.addReading(newId, {
       id: 1,
       patientId: newId,
       sessionId: "init-" + newId,
@@ -95,7 +101,7 @@ export function registerRoutes(app: Express) {
     });
     
     // Initialize simulator state for the new patient
-    storage.patientStates.set(newPatient.id, {
+    (req as any).storage.patientStates.set(newPatient.id, {
       minuteElapsed: 0,
       ufRemoved: 0,
       phase: "stable",
@@ -109,12 +115,35 @@ export function registerRoutes(app: Express) {
     res.json(newPatient);
   });
 
+  app.put("/api/patients/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const updated = await (req as any).storage.updatePatient(id, req.body);
+    if (!updated) return res.status(404).send("Patient not found");
+    res.json(updated);
+  });
+
+  app.delete("/api/patients/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    await (req as any).storage.deletePatient(id);
+    res.sendStatus(200);
+  });
+
+  app.post("/api/admin/login", async (req, res) => {
+    const { password } = req.body;
+    // Simple mock password for the congress
+    if (password === "nefro2026" || password === "admin123") {
+      res.json({ success: true, token: "admin_token_mock" });
+    } else {
+      res.status(401).json({ success: false, message: "Contraseña incorrecta" });
+    }
+  });
+
   app.get("/api/patients/:id", async (req, res) => {
     const id = parseInt(req.params.id);
-    const p = await storage.getPatient(id);
+    const p = await (req as any).storage.getPatient(id);
     if (!p) return res.status(404).send("Patient not found");
-    const readings = await storage.getReadings(id);
-    const state = storage.patientStates.get(id);
+    const readings = await (req as any).storage.getReadings(id);
+    const state = (req as any).storage.patientStates.get(id);
     const lastReading = readings[readings.length - 1];
     
     const patientWithState = {
@@ -130,11 +159,11 @@ export function registerRoutes(app: Express) {
     res.json({ patient: patientWithState, readings });
   });
 
-  app.get("/api/stats", async (_req, res) => {
-    const patients = await storage.getPatients();
-    const activePatients = await Promise.all(patients.map(async (p) => {
-      const readings = await storage.getReadings(p.id);
-      const state = storage.patientStates.get(p.id);
+  app.get("/api/stats", async (req, res) => {
+    const patients = await (req as any).storage.getPatients();
+    const activePatients = await Promise.all(patients.map(async (p: any) => {
+      const readings = await (req as any).storage.getReadings(p.id);
+      const state = (req as any).storage.patientStates.get(p.id);
       return { p, lastReading: readings[readings.length - 1], state };
     }));
 
@@ -151,7 +180,7 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/patients/:id/pre-dialysis", async (req, res) => {
     const id = parseInt(req.params.id);
-    const data = await storage.getPreDialysis(id);
+    const data = await (req as any).storage.getPreDialysis(id);
     res.json(data || null);
   });
 
@@ -166,23 +195,23 @@ export function registerRoutes(app: Express) {
       dbpPreDialysis: parseFloat(req.body.dbpPreDialysis) || 0,
       hrPreDialysis: parseFloat(req.body.hrPreDialysis) || 0,
     };
-    await storage.setPreDialysis(id, data);
+    await (req as any).storage.setPreDialysis(id, data);
 
-    const patientData = await storage.getPatient(id);
+    const patientData = await (req as any).storage.getPatient(id);
     if (patientData && data.interdialyticWeightGain) {
       const idwgFloat = parseFloat(data.interdialyticWeightGain);
       if (!isNaN(idwgFloat) && idwgFloat > 0) {
         patientData.targetUfVolume = idwgFloat;
-        await storage.setPatient(patientData);
+        await (req as any).storage.setPatient(patientData);
       }
     }
 
     // Update initial reading and state to reflect the pre-dialysis vitals
-    const state = storage.patientStates.get(id);
+    const state = (req as any).storage.patientStates.get(id);
     if (state && state.minuteElapsed === 0) {
       state.preSbp = data.sbpPreDialysis;
       
-      const readings = await storage.getReadings(id);
+      const readings = await (req as any).storage.getReadings(id);
       if (readings.length > 0) {
         const latestReading = readings[readings.length - 1];
         if (latestReading.minuteOfSession === 0) {
@@ -198,28 +227,28 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/patients/:id/interventions", async (req, res) => {
     const id = parseInt(req.params.id);
-    const logs = await storage.getInterventions(id);
+    const logs = await (req as any).storage.getInterventions(id);
     res.json(logs);
   });
 
   app.post("/api/patients/:id/interventions", async (req, res) => {
     const id = parseInt(req.params.id);
-    const intervention = await storage.addIntervention(id, req.body);
+    const intervention = await (req as any).storage.addIntervention(id, req.body);
     res.json(intervention);
   });
 
   app.delete("/api/interventions/:id", async (req, res) => {
     const id = parseInt(req.params.id);
-    await storage.deleteIntervention(id);
+    await (req as any).storage.deleteIntervention(id);
     res.sendStatus(200);
   });
 
   app.get("/api/patients/:id/session-report", async (req, res) => {
     const id = parseInt(req.params.id);
-    const patient = await storage.getPatient(id);
-    const readings = await storage.getReadings(id);
-    const preDialysis = await storage.getPreDialysis(id);
-    const interventions = await storage.getInterventions(id);
+    const patient = await (req as any).storage.getPatient(id);
+    const readings = await (req as any).storage.getReadings(id);
+    const preDialysis = await (req as any).storage.getPreDialysis(id);
+    const interventions = await (req as any).storage.getInterventions(id);
     res.json({ patient, readings, preDialysis, interventions });
   });
 }

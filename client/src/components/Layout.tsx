@@ -16,10 +16,12 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardStats } from "@shared/types";
 import { AlertsDialog } from "@/components/AlertsDialog";
+import { AdminLoginDialog } from "@/components/AdminLoginDialog";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [location] = useLocation();
+  const [loginOpen, setLoginOpen] = useState(false);
 
   const [theme, setTheme] = useState(() => {
     try {
@@ -29,6 +31,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     // Default to dark
     return "dark";
   });
+
+  const [isAdmin, setIsAdmin] = useState(() => {
+    try {
+      return localStorage.getItem("hd_admin_mode") === "true";
+    } catch {}
+    return false;
+  });
+
+  const toggleAdmin = () => {
+    if (!isAdmin) {
+      setLoginOpen(true);
+    } else {
+      setIsAdmin(false);
+      localStorage.setItem("hd_admin_mode", "false");
+      window.dispatchEvent(new CustomEvent('admin_mode_changed', { detail: { isAdmin: false } }));
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem("hd_theme", theme);
@@ -139,6 +158,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
               {!collapsed && <span>Tema {theme === 'dark' ? 'Claro' : 'Oscuro'}</span>}
             </button>
+            <button
+              onClick={toggleAdmin}
+              className={cn(
+                "flex items-center gap-3 w-full p-2.5 rounded-lg transition-all text-sm font-medium mt-2",
+                isAdmin ? "text-amber-500 bg-amber-500/10" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              )}
+            >
+              <Users size={18} />
+              {!collapsed && <span>{isAdmin ? "Admin Activo" : "Admin Login"}</span>}
+            </button>
           </div>
         </nav>
 
@@ -171,6 +200,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Global Dialogs */}
       <AlertsDialog />
+      <AdminLoginDialog 
+        open={loginOpen} 
+        onOpenChange={setLoginOpen} 
+        onSuccess={() => {
+          setIsAdmin(true);
+          localStorage.setItem("hd_admin_mode", "true");
+          window.dispatchEvent(new CustomEvent('admin_mode_changed', { detail: { isAdmin: true } }));
+        }} 
+      />
     </div>
   );
 }

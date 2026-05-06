@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UserPlus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export function AddPatientDialog() {
   const [open, setOpen] = useState(false);
@@ -51,42 +52,36 @@ export function AddPatientDialog() {
   
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await fetch("/api/patients", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          age: parseInt(data.age) || 65,
-          dialysisVintage: parseInt(data.dialysisVintage) || 0,
-          dryWeight: parseFloat(data.dryWeight) || 0,
-          albumin: parseFloat(data.albumin) || 0,
-          hemoglobin: parseFloat(data.hemoglobin) || 0,
-          spKtv: parseFloat(data.spKtv) || 0,
-          phosphorus: parseFloat(data.phosphorus) || 0,
-          calcium: parseFloat(data.calcium) || 0,
-          pth: parseFloat(data.pth) || 0,
-          potassium: parseFloat(data.potassium) || 0,
-          bnp: parseFloat(data.bnp) || 0,
-          tnt: parseFloat(data.tnt) || 0,
-          pcr: parseFloat(data.pcr) || 0,
-          ferritin: parseFloat(data.ferritin) || 0,
-          tsat: parseFloat(data.tsat) || 0,
-          bunPre: parseFloat(data.bunPre) || 0,
-          bunPost: parseFloat(data.bunPost) || 0,
-          diabetic: parseInt(data.diabetic) || 0,
-          cardiopathy: parseInt(data.cardiopathy) || 0,
-          ejectionFraction: parseFloat(data.ejectionFraction) || 0,
-          transplantList: parseInt(data.transplantList) || 0,
-          autonomicDysfunction: parseInt(data.autonomicDysfunction) || 0,
-          targetUfVolume: parseFloat(data.targetUfVolume) || 0,
-          sessionDuration: parseFloat(data.sessionDuration) || 0,
-          bloodFlowRate: parseFloat(data.bloodFlowRate) || 0,
-          dialysateTemp: parseFloat(data.dialysateTemp) || 0,
-          sodiumDialysate: parseFloat(data.sodiumDialysate) || 0
-        }),
+      return await apiRequest("POST", "/api/patients", {
+        ...data,
+        age: parseInt(data.age) || 65,
+        dialysisVintage: parseInt(data.dialysisVintage) || 0,
+        dryWeight: parseFloat(data.dryWeight) || 0,
+        albumin: parseFloat(data.albumin) || 0,
+        hemoglobin: parseFloat(data.hemoglobin) || 0,
+        spKtv: parseFloat(data.spKtv) || 0,
+        phosphorus: parseFloat(data.phosphorus) || 0,
+        calcium: parseFloat(data.calcium) || 0,
+        pth: parseFloat(data.pth) || 0,
+        potassium: parseFloat(data.potassium) || 0,
+        bnp: parseFloat(data.bnp) || 0,
+        tnt: parseFloat(data.tnt) || 0,
+        pcr: parseFloat(data.pcr) || 0,
+        ferritin: parseFloat(data.ferritin) || 0,
+        tsat: parseFloat(data.tsat) || 0,
+        bunPre: parseFloat(data.bunPre) || 0,
+        bunPost: parseFloat(data.bunPost) || 0,
+        diabetic: parseInt(data.diabetic) || 0,
+        cardiopathy: parseInt(data.cardiopathy) || 0,
+        ejectionFraction: parseFloat(data.ejectionFraction) || 0,
+        transplantList: parseInt(data.transplantList) || 0,
+        autonomicDysfunction: parseInt(data.autonomicDysfunction) || 0,
+        targetUfVolume: parseFloat(data.targetUfVolume) || 0,
+        sessionDuration: parseFloat(data.sessionDuration) || 0,
+        bloodFlowRate: parseFloat(data.bloodFlowRate) || 0,
+        dialysateTemp: parseFloat(data.dialysateTemp) || 0,
+        sodiumDialysate: parseFloat(data.sodiumDialysate) || 0
       });
-      if (!res.ok) throw new Error("Failed to create");
-      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
