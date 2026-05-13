@@ -17,11 +17,13 @@ import { useQuery } from "@tanstack/react-query";
 import { DashboardStats } from "@shared/types";
 import { AlertsDialog } from "@/components/AlertsDialog";
 import { AdminLoginDialog } from "@/components/AdminLoginDialog";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [location] = useLocation();
   const [loginOpen, setLoginOpen] = useState(false);
+  const { toast } = useToast();
 
   const [theme, setTheme] = useState(() => {
     try {
@@ -46,6 +48,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       setIsAdmin(false);
       localStorage.setItem("hd_admin_mode", "false");
       window.dispatchEvent(new CustomEvent('admin_mode_changed', { detail: { isAdmin: false } }));
+      
+      // Apagar autopilot si se hace logout de admin
+      setAiAutopilot(false);
     }
   };
 
@@ -134,7 +139,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {aiAutopilot ? "Las recomendaciones se aplican de forma automática." : "El médico debe aprobar manualmente cada recomendación."}
               </p>
               <button 
-                onClick={() => setAiAutopilot(!aiAutopilot)}
+                onClick={() => {
+                  if (!isAdmin) {
+                    toast({
+                      title: "Acceso Denegado",
+                      description: "Se requiere ingresar como Administrador (Nefrólogo) para habilitar el Autopilot.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  setAiAutopilot(!aiAutopilot);
+                }}
                 className={cn(
                   "w-full py-2 px-3 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm border flex items-center justify-center gap-2",
                   aiAutopilot 

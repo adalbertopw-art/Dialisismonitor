@@ -27,14 +27,17 @@ import { useAdminMode } from "@/hooks/useAdminMode";
 import { useAiAutopilot } from "@/hooks/useAiAutopilot";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Edit } from "lucide-react";
+import { Trash2, Edit, BotOff } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+
+import { useAiOverrides } from "@/hooks/useAiOverrides";
 
 export default function Dashboard() {
   const [time, setTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState("monitor");
   const isAdmin = useAdminMode();
   const aiAutopilot = useAiAutopilot();
+  const { overrides, toggleOverride } = useAiOverrides();
   const [editingPatient, setEditingPatient] = useState<any>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -92,7 +95,7 @@ export default function Dashboard() {
 
   // Simulate active AI interventions based on early warning (Kim et al.)
   const aiInterventions = patients.filter((patient) => {
-    return patient.currentReading?.riskScore >= 45 || patient.currentReading?.idhtRiskScore >= 45;
+    return (patient.currentReading?.riskScore >= 45 || patient.currentReading?.idhtRiskScore >= 45) && !overrides.includes(patient.id);
   });
 
   return (
@@ -341,19 +344,22 @@ export default function Dashboard() {
                 let autoUfr = ufrRaw;
                 let autoTemp = patient.dialysateTemp;
                 let isAiIntervening = false;
+                const isOverridden = overrides.includes(patient.id);
 
                 const risk = patient.currentReading?.riskScore || 0;
 
-                if (risk >= 65) {
-                  autoUfr = Math.max(0, autoUfr - 8);
-                  autoTemp = 35.5; 
-                  isAiIntervening = true;
-                } else if (risk >= 45) {
-                  autoUfr = Math.max(5, autoUfr - 3);
-                  autoTemp = 36.0;
-                  isAiIntervening = true;
-                } else if (risk < 25 && autoUfr < 15) {
-                   autoUfr = Math.min(15, autoUfr + 1);
+                if (!isOverridden) {
+                  if (risk >= 65) {
+                    autoUfr = Math.max(0, autoUfr - 8);
+                    autoTemp = 35.5; 
+                    isAiIntervening = true;
+                  } else if (risk >= 45) {
+                    autoUfr = Math.max(5, autoUfr - 3);
+                    autoTemp = 36.0;
+                    isAiIntervening = true;
+                  } else if (risk < 25 && autoUfr < 15) {
+                     autoUfr = Math.min(15, autoUfr + 1);
+                  }
                 }
 
                 const ufr = ufrRaw; // Fallback mapping for original usage if needed outside
@@ -601,6 +607,26 @@ export default function Dashboard() {
                             title="Editar paciente"
                           >
                             <Edit size={12} />
+                          </button>
+                          <button
+                            className={cn(
+                              "p-1 rounded transition-colors",
+                              isOverridden 
+                                ? "bg-amber-500 text-white hover:bg-amber-600" 
+                                : "bg-zinc-500/10 text-zinc-500 hover:bg-zinc-500/20"
+                            )}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleOverride(patient.id);
+                              if (!isOverridden) {
+                                toast({ title: "Intervención de IA anulada", description: `Se ha revertido la decisión autónoma para Cama ${patient.bed}` });
+                              } else {
+                                toast({ title: "Intervención de IA restabecida", description: `Se retomó el control autónomo de IA para Cama ${patient.bed}` });
+                              }
+                            }}
+                            title={isOverridden ? "Restablecer IA" : "Anulación médica (IA)"}
+                          >
+                            <BotOff size={12} />
                           </button>
                           <button
                             className="p-1 rounded bg-rose-500/10 text-rose-500 hover:bg-rose-500/20"

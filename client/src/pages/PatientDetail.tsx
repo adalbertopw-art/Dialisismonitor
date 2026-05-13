@@ -58,6 +58,10 @@ import { ScientificEvidenceModal } from "@/components/ScientificEvidenceModal";
 import { DigitalTwinSimulator } from "@/components/DigitalTwinSimulator";
 import { BioimpedancePhenotype } from "@/components/BioimpedancePhenotype";
 import { ClosedLoopBiofeedback } from "@/components/ClosedLoopBiofeedback";
+import { useAiOverrides } from "@/hooks/useAiOverrides";
+import { useAdminMode } from "@/hooks/useAdminMode";
+import { useToast } from "@/hooks/use-toast";
+import { BotOff } from "lucide-react";
 import { SodiumUFProfile } from "@/components/SodiumUFProfile";
 import { BodyCompositionChart } from "@/components/BodyCompositionChart";
 import { AIRecommendationsPanel } from "@/components/AIRecommendationsPanel";
@@ -90,6 +94,11 @@ export default function PatientDetail() {
   const [processedRecommendations, setProcessedRecommendations] = useState<Set<string>>(new Set());
   const [uiUfrReduction, setUiUfrReduction] = useState<number>(0);
   const [uiTimeExtension, setUiTimeExtension] = useState<number>(0);
+
+  const { toast } = useToast();
+  const { overrides, toggleOverride } = useAiOverrides();
+  const isAdmin = useAdminMode();
+  const isOverridden = overrides.includes(id);
 
   const [aiAutopilot, setAiAutopilot] = useState(() => {
     try {
@@ -430,13 +439,37 @@ export default function PatientDetail() {
                   {patient.name}
                   <div className={cn(
                     "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[9px] uppercase tracking-widest ml-2",
-                    aiAutopilot 
+                    isOverridden
+                      ? "bg-amber-500/10 text-amber-500 border-amber-500/20 opacity-80"
+                      : aiAutopilot 
                       ? "bg-rose-500/10 text-rose-400 border-rose-500/20" 
                       : "bg-sky-500/10 text-sky-400 border-sky-500/20"
                   )}>
-                    {aiAutopilot ? <Bot size={12} /> : <ShieldCheck size={12} />}
-                    {aiAutopilot ? "Autopilot" : "Recomendación"}
+                    {isOverridden ? <BotOff size={10} /> : aiAutopilot ? <Bot size={12} /> : <ShieldCheck size={12} />}
+                    {isOverridden ? "IA Anulada" : aiAutopilot ? "Autopilot" : "Recomendación"}
                   </div>
+                  {isAdmin && (
+                    <button
+                      className={cn(
+                        "ml-2 flex items-center gap-1 px-2 py-1 rounded text-[10px] uppercase font-bold tracking-wider transition-colors",
+                        isOverridden
+                          ? "bg-amber-500 text-white hover:bg-amber-600"
+                          : "bg-zinc-100 hover:bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-400"
+                      )}
+                      onClick={(e) => {
+                         e.stopPropagation();
+                         toggleOverride(patient.id);
+                         if (!isOverridden) {
+                           toast({ title: "Intervención de IA anulada", description: `Se ha revertido la decisión autónoma para Cama ${patient.bed}` });
+                         } else {
+                           toast({ title: "Intervención de IA restabecida", description: `Se retomó el control autónomo de IA para Cama ${patient.bed}` });
+                         }
+                      }}
+                    >
+                      <BotOff size={12} />
+                      {isOverridden ? "Restablecer IA" : "Anular IA"}
+                    </button>
+                  )}
                 </h2>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {isSimulating && (
@@ -586,12 +619,14 @@ export default function PatientDetail() {
             {patient.name}
             <div className={cn(
               "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[9px] uppercase tracking-widest",
-              aiAutopilot 
+              isOverridden
+                ? "bg-amber-500/10 text-amber-500 border-amber-500/20 opacity-80"
+                : aiAutopilot 
                 ? "bg-rose-500/10 text-rose-400 border-rose-500/20" 
                 : "bg-sky-500/10 text-sky-400 border-sky-500/20"
             )}>
-              {aiAutopilot ? <Bot size={12} /> : <ShieldCheck size={12} />}
-              <span className="hidden sm:inline">{aiAutopilot ? "Autopilot" : "Recomendación"}</span>
+              {isOverridden ? <BotOff size={10} /> : aiAutopilot ? <Bot size={12} /> : <ShieldCheck size={12} />}
+              <span className="hidden sm:inline">{isOverridden ? "IA Anulada" : aiAutopilot ? "Autopilot" : "Recomendación"}</span>
             </div>
           </span>
           <div className="flex flex-col items-start px-2 border-l border-border">
@@ -1833,7 +1868,7 @@ export default function PatientDetail() {
             patient={patient} 
             lastReading={lastReading} 
             isSessionFinished={lastReading.minuteOfSession >= (patient.sessionDuration || 4) * 60 - 1} 
-            aiInterventionsCount={processedRecommendations.size + (aiAutopilot ? 3 : 0)} 
+            aiInterventionsCount={processedRecommendations.size + (aiAutopilot && !isOverridden ? 3 : 0)} 
           />
           <NursingNotesMiner patient={patient} />
           <SBARNoteGenerator
