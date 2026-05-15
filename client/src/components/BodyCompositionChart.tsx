@@ -46,6 +46,7 @@ export function BodyCompositionChart({ patient, lastReading }: any) {
               >
                 <PolarRadiusAxis type="number" domain={[0, 120]} tick={false} axisLine={false} />
                 <RadialBar
+                  isAnimationActive={false}
                   background={{ fill: '#1a1a1a' }}
                   dataKey="pct"
                   cornerRadius={10}

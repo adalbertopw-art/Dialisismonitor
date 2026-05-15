@@ -86,6 +86,19 @@ export class MemStorage {
       }
     }
   }
+
+  async updateIntervention(id: number, updates: Partial<Omit<InterventionLog, "id">>): Promise<InterventionLog | undefined> {
+    for (const [patientId, logs] of this.interventions.entries()) {
+      const index = logs.findIndex((log) => log.id === id);
+      if (index !== -1) {
+        const updated = { ...logs[index], ...updates };
+        logs[index] = updated;
+        this.interventions.set(patientId, [...logs]);
+        return updated;
+      }
+    }
+    return undefined;
+  }
 }
 
 export const sessions = new Map<string, MemStorage>();

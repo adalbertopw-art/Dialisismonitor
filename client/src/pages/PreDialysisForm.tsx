@@ -49,7 +49,7 @@ export default function PreDialysisForm() {
     queryKey: [`/api/patients/${id}`],
   });
   
-  const patient = patientResponse?.patient;
+  const patient = (patientResponse as any)?.patient;
 
   useEffect(() => {
     if (initialData) setFormData(initialData);

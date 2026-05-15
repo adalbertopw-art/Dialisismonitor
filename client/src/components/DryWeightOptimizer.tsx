@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Scale, Droplets, Target, Activity, HeartPulse, Stethoscope, AlertTriangle, ArrowRight, CheckCircle2, BrainCircuit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ReferenceLine } from "recharts";
+import { useMemo } from "react";
 
 export function DryWeightOptimizer({ patient }: any) {
   if (!patient) return null;
@@ -20,7 +21,7 @@ export function DryWeightOptimizer({ patient }: any) {
   const hasIdhtHistory = patient.idhtEpisodes > 1;
   const muscleLoss = patient.albumin < 3.5; // marker of malnutrition/inflammation
   
-  const historicalBIA = Array.from({ length: 6 }).map((_, i) => {
+  const historicalBIA = useMemo(() => Array.from({ length: 6 }).map((_, i) => {
     // 6 months of data
     const month = `M-${5 - i}`;
     // If muscle loss, ICW decreases, so ECW/ICW ratio increases. 
@@ -44,7 +45,7 @@ export function DryWeightOptimizer({ patient }: any) {
       idht,
       dw: Number(dw.toFixed(1))
     };
-  });
+  }), [muscleLoss, isHtn, hasIdhtHistory, currentDryWeight]);
 
   const currentEcwIcw = historicalBIA[5].ecwIcw;
   const ohLiters = isHtn ? 2.4 : (currentEcwIcw > 0.8 ? 1.8 : 0.8);
@@ -190,10 +191,10 @@ export function DryWeightOptimizer({ patient }: any) {
                     itemStyle={{ color: '#fff' }}
                   />
                   {/* Hipotensiones / Eventos IDHT */}
-                  <Area yAxisId="left" type="step" dataKey="idht" name="Eventos IDHT" fill="#f43f5e20" stroke="#f43f5e" strokeWidth={1} strokeDasharray="4 4" />
+                  <Area isAnimationActive={false} yAxisId="left" type="step" dataKey="idht" name="Eventos IDHT" fill="#f43f5e20" stroke="#f43f5e" strokeWidth={1} strokeDasharray="4 4" />
                   
-                  <Line yAxisId="right" type="monotone" dataKey="bnp" name="NT-proBNP (pg/mL)" stroke="#10b981" strokeWidth={2} dot={{r:3}} />
-                  <Line yAxisId="left" type="monotone" dataKey="ecwIcw" name="Ratio ECW/ICW" stroke="#38bdf8" strokeWidth={3} dot={{r:4, fill:"#0ea5e9"}} />
+                  <Line isAnimationActive={false} yAxisId="right" type="monotone" dataKey="bnp" name="NT-proBNP (pg/mL)" stroke="#10b981" strokeWidth={2} dot={{r:3}} />
+                  <Line isAnimationActive={false} yAxisId="left" type="monotone" dataKey="ecwIcw" name="Ratio ECW/ICW" stroke="#38bdf8" strokeWidth={3} dot={{r:4, fill:"#0ea5e9"}} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>

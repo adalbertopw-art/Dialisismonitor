@@ -14,11 +14,12 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trash2, PlusCircle, User, Clock } from "lucide-react";
+import { Trash2, PlusCircle, User, Clock, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function InterventionLogger({ patientId }: { patientId: number }) {
   const { toast } = useToast();
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [type, setType] = useState<string>("");
   const [detail, setDetail] = useState("");
   const [saline, setSaline] = useState("");
@@ -30,16 +31,30 @@ export default function InterventionLogger({ patientId }: { patientId: number })
     queryKey: [`/api/patients/${patientId}/interventions`],
   });
 
+  const resetForm = () => {
+    setEditingId(null);
+    setType("");
+    setDetail("");
+    setSaline("");
+    setUfr("");
+    setTemp("");
+  };
+
   const createMutation = useMutation({
     mutationFn: (newIntervention: any) => apiRequest("POST", `/api/patients/${patientId}/interventions`, newIntervention),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/patients/${patientId}/interventions`] });
-      setType("");
-      setDetail("");
-      setSaline("");
-      setUfr("");
-      setTemp("");
+      resetForm();
       toast({ title: "Intervención registrada", description: "Se ha guardado correctamente el registro." });
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: { id: number; updates: any }) => apiRequest("PATCH", `/api/interventions/${data.id}`, data.updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${patientId}/interventions`] });
+      resetForm();
+      toast({ title: "Intervención actualizada", description: "Se han guardado los cambios." });
     }
   });
 
@@ -47,12 +62,14 @@ export default function InterventionLogger({ patientId }: { patientId: number })
     mutationFn: (id: number) => apiRequest("DELETE", `/api/interventions/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/patients/${patientId}/interventions`] });
+      toast({ title: "Intervención eliminada", description: "El registro ha sido eliminado." });
     }
   });
 
   const handleRegister = () => {
     if (!type) return;
-    createMutation.mutate({
+    
+    const payload = {
       interventionType: type,
       detail,
       salineVolumeMl: saline ? parseInt(saline) : undefined,
@@ -61,7 +78,23 @@ export default function InterventionLogger({ patientId }: { patientId: number })
       performedBy,
       timestamp: new Date().toISOString(),
       minuteOfSession: 0, // In a real app we'd get this from the state
-    });
+    };
+
+    if (editingId) {
+      updateMutation.mutate({ id: editingId, updates: payload });
+    } else {
+      createMutation.mutate(payload);
+    }
+  };
+
+  const handleEditClick = (log: InterventionLog) => {
+    setEditingId(log.id);
+    setType(log.interventionType);
+    setDetail(log.detail || "");
+    setSaline(log.salineVolumeMl ? String(log.salineVolumeMl) : "");
+    setUfr(log.ufrNewValue ? String(log.ufrNewValue) : "");
+    setTemp(log.dialysateTempNew ? String(log.dialysateTempNew) : "");
+    setPerformedBy(log.performedBy || "Enfermero/a");
   };
 
   return (
@@ -69,7 +102,7 @@ export default function InterventionLogger({ patientId }: { patientId: number })
       <Card className="bg-card/50 border-border">
         <CardHeader className="py-3">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <PlusCircle size={16} /> Registrar Intervención
+            <PlusCircle size={16} /> {editingId ? "Editar Intervención" : "Registrar Intervención"}
           </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
@@ -133,13 +166,22 @@ export default function InterventionLogger({ patientId }: { patientId: number })
               <Label className="text-[10px] uppercase text-muted-foreground">Temp D.</Label>
               <Input type="number" className="h-8 text-xs bg-background" value={temp} onChange={(e) => setTemp(e.target.value)} />
             </div>
-            <div className="flex items-end">
+            <div className="flex items-end gap-2">
+              {editingId && (
+                <Button 
+                  variant="outline"
+                  onClick={resetForm} 
+                  className="h-8 px-3 text-xs"
+                >
+                  Cancelar
+                </Button>
+              )}
               <Button 
                 onClick={handleRegister} 
-                disabled={!type || createMutation.isPending}
+                disabled={!type || createMutation.isPending || updateMutation.isPending}
                 className="h-8 px-4 text-xs"
               >
-                Registrar
+                {editingId ? "Actualizar" : "Registrar"}
               </Button>
             </div>
           </div>
@@ -168,14 +210,26 @@ export default function InterventionLogger({ patientId }: { patientId: number })
                       {log.ufrNewValue && <span>UFR: {log.ufrNewValue}</span>}
                     </div>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-6 w-6 text-destructive/50 hover:text-destructive"
-                    onClick={() => deleteMutation.mutate(log.id)}
-                  >
-                    <Trash2 size={14} />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 text-muted-foreground hover:text-primary"
+                      onClick={() => handleEditClick(log)}
+                      title="Editar intervención"
+                    >
+                      <Pencil size={14} />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 text-destructive/50 hover:text-destructive"
+                      onClick={() => deleteMutation.mutate(log.id)}
+                      title="Eliminar intervención"
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
                 </div>
               ))
             )}

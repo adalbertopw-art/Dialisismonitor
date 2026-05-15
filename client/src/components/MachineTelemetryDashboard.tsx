@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { Activity, Droplet, Thermometer, Wind, AlertCircle, Box } from "lucide-react";
+import { useMemo } from "react";
 
 // Mock data generator for machine history
 const generateMachineHistory = () => {
@@ -31,7 +32,7 @@ const generateMachineHistory = () => {
 };
 
 export function MachineTelemetryDashboard({ patient }: { patient: any }) {
-  const data = generateMachineHistory();
+  const data = useMemo(() => generateMachineHistory(), []);
   const current = data[data.length - 1];
 
   const filters = ["FX CorDiax 80", "Revaclear 400", "Elisio 15H", "Optiflux 160NR", "Polyflux 170H", "Sureflux 190E"];
@@ -153,9 +154,9 @@ export function MachineTelemetryDashboard({ patient }: { patient: any }) {
                   labelStyle={{ fontSize: '10px', color: '#888', marginBottom: '4px' }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
-                <Area type="monotone" dataKey="vp" name="P. Venosa (mmHg)" stroke="#0ea5e9" strokeWidth={2} fillOpacity={1} fill="url(#colorVp)" />
-                <Area type="monotone" dataKey="tmp" name="PTM (mmHg)" stroke="#f59e0b" strokeWidth={2} fillOpacity={1} fill="url(#colorTmp)" />
-                <Area type="monotone" dataKey="ap" name="P. Arterial (mmHg)" stroke="#a855f7" strokeWidth={2} fillOpacity={1} fill="url(#colorAp)" />
+                <Area isAnimationActive={false} type="monotone" dataKey="vp" name="P. Venosa (mmHg)" stroke="#0ea5e9" strokeWidth={2} fillOpacity={1} fill="url(#colorVp)" />
+                <Area isAnimationActive={false} type="monotone" dataKey="tmp" name="PTM (mmHg)" stroke="#f59e0b" strokeWidth={2} fillOpacity={1} fill="url(#colorTmp)" />
+                <Area isAnimationActive={false} type="monotone" dataKey="ap" name="P. Arterial (mmHg)" stroke="#a855f7" strokeWidth={2} fillOpacity={1} fill="url(#colorAp)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

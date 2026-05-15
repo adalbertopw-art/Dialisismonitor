@@ -206,7 +206,7 @@ Plan:
                              <div className="bg-black/60 border border-border rounded-lg p-3 h-[100px]">
                                <ResponsiveContainer width="100%" height="100%">
                                  <LineChart data={item.trendData}>
-                                   <Line type="monotone" dataKey="sys" stroke="#10b981" strokeWidth={2} dot={{ r: 2, fill: '#10b981' }} />
+                                   <Line isAnimationActive={false} type="monotone" dataKey="sys" stroke="#10b981" strokeWidth={2} dot={{ r: 2, fill: '#10b981' }} />
                                    <YAxis domain={['dataMin - 10', 'dataMax + 10']} hide />
                                    <RechartsTooltip 
                                      contentStyle={{ backgroundColor: '#111', border: '1px solid rgba(255,255,255,0.1)', fontSize: '10px', borderRadius: '6px' }}

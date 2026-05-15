@@ -245,7 +245,7 @@ export function AddPatientDialog() {
               </div>
             </div>
             <div className="space-y-1">
-              <Label htmlFor="dialysisVintage" className="text-xs">Vintage HD (meses)</Label>
+              <Label htmlFor="dialysisVintage" className="text-xs">Tiempo HD (meses)</Label>
               <Input 
                 id="dialysisVintage" type="number"
                 className="bg-muted/50 border-border" 

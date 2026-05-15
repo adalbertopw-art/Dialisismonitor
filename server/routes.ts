@@ -71,7 +71,13 @@ export function registerRoutes(app: Express) {
         ferritin: parseFloat(req.body.ferritin) || 400,
         tsat: parseFloat(req.body.tsat) || 30,
         bunPre: parseFloat(req.body.bunPre) || 60,
-        bunPost: parseFloat(req.body.bunPost) || 15
+        bunPost: parseFloat(req.body.bunPost) || 15,
+        cholesterol: 180,
+        triglycerides: 150,
+        alkalinePhosphatase: 100,
+        hcvStatus: 'Negativo',
+        hbvStatus: 'Negativo',
+        hivStatus: 'Negativo',
       }],
       minuteElapsed: 0,
       sessionProgress: 0,
@@ -241,6 +247,15 @@ export function registerRoutes(app: Express) {
     const id = parseInt(req.params.id);
     await (req as any).storage.deleteIntervention(id);
     res.sendStatus(200);
+  });
+
+  app.patch("/api/interventions/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const updated = await (req as any).storage.updateIntervention(id, req.body);
+    if (!updated) {
+      return res.status(404).json({ message: "Intervention not found" });
+    }
+    res.json(updated);
   });
 
   app.get("/api/patients/:id/session-report", async (req, res) => {

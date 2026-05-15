@@ -1,38 +1,43 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ReferenceLine } from "recharts";
 import { FlaskConical, Droplet, Activity, TestTube2, AlertTriangle, Syringe } from "lucide-react";
+import { useMemo } from "react";
 
 export function SodiumUFProfile({ patient, sessionDurationParams = 4, currentMinute = 0 }: any) {
   // Generate a mock UF/Na profile for the duration
   // Duration typically 4 hours (240 mins). Let's do 10-min increments.
-  const profileData = [];
   const maxMins = sessionDurationParams * 60;
   
-  for (let i = 0; i <= maxMins; i += 10) {
-    let ufRate = 0;
-    let naConc = 0;
+  const profileData = useMemo(() => {
+    const data = [];
+    
+    for (let i = 0; i <= maxMins; i += 10) {
+      let ufRate = 0;
+      let naConc = 0;
 
-    // Profile type: Step-down UF, Linear-down Na (Simulated logic based on low Albumin / low initial Na)
-    if (i < 60) {
-      ufRate = 1200;
-      naConc = 144 - (i / 60) * 1; // 144 to 143
-    } else if (i < 120) {
-      ufRate = 1000;
-      naConc = 143 - ((i - 60) / 60) * 2; // 143 to 141
-    } else if (i < 180) {
-      ufRate = 800;
-      naConc = 141 - ((i - 120) / 60) * 1; // 141 to 140
-    } else {
-      ufRate = 400;
-      naConc = 140 - ((i - 180) / (maxMins - 180)) * 2; // 140 to 138
+      // Profile type: Step-down UF, Linear-down Na (Simulated logic based on low Albumin / low initial Na)
+      if (i < 60) {
+        ufRate = 1200;
+        naConc = 144 - (i / 60) * 1; // 144 to 143
+      } else if (i < 120) {
+        ufRate = 1000;
+        naConc = 143 - ((i - 60) / 60) * 2; // 143 to 141
+      } else if (i < 180) {
+        ufRate = 800;
+        naConc = 141 - ((i - 120) / 60) * 1; // 141 to 140
+      } else {
+        ufRate = 400;
+        naConc = 140 - ((i - 180) / (maxMins - 180)) * 2; // 140 to 138
+      }
+
+      data.push({
+        minute: i,
+        ufRate,
+        naConc: Number(naConc.toFixed(1))
+      });
     }
-
-    profileData.push({
-      minute: i,
-      ufRate,
-      naConc: Number(naConc.toFixed(1))
-    });
-  }
+    return data;
+  }, [sessionDurationParams]);
 
   // Simulated labs for context
   const labs = [
@@ -142,6 +147,7 @@ export function SodiumUFProfile({ patient, sessionDurationParams = 4, currentMin
                   />
                   
                   <Area
+                    isAnimationActive={false}
                     yAxisId="left"
                     type="stepAfter"
                     dataKey="ufRate"
@@ -150,6 +156,7 @@ export function SodiumUFProfile({ patient, sessionDurationParams = 4, currentMin
                     fillOpacity={0.15}
                   />
                   <Line
+                    isAnimationActive={false}
                     yAxisId="left"
                     type="stepAfter"
                     dataKey="ufRate"
@@ -159,6 +166,7 @@ export function SodiumUFProfile({ patient, sessionDurationParams = 4, currentMin
                   />
                   
                   <Line
+                    isAnimationActive={false}
                     yAxisId="right"
                     type="monotone"
                     dataKey="naConc"

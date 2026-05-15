@@ -167,7 +167,7 @@ export function PopulationRiskBoard({ patients }: { patients: Patient[] }) {
                     <Tooltip cursor={{strokeDasharray: '3 3'}} content={<CustomTooltip />} />
                     <ReferenceLine x={50} stroke="#ffffff20" />
                     <ReferenceLine y={60} stroke="#ffffff20" />
-                    <Scatter name="Pacientes" data={quadrantData}>
+                    <Scatter isAnimationActive={false} name="Pacientes" data={quadrantData}>
                       {quadrantData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={getQuadrantColor(entry.category)} />
                       ))}

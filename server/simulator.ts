@@ -161,6 +161,12 @@ export function initSimulatorForStorage(storage: MemStorage, sessionId: string) 
         tsat: Math.floor(20 + Math.random() * 30),
         bunPre: Math.floor(50 + Math.random() * 40),
         bunPost: Math.floor(15 + Math.random() * 15),
+        cholesterol: Math.floor(120 + Math.random() * 80),
+        triglycerides: Math.floor(100 + Math.random() * 150),
+        alkalinePhosphatase: Math.floor(50 + Math.random() * 100),
+        hcvStatus: 'Negativo',
+        hbvStatus: 'Negativo',
+        hivStatus: 'Negativo',
       });
     }
     return labs;

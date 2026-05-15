@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,7 @@ export function ClosedLoopBiofeedback({ patient, readings, lastReading }: any) {
   if (!readings || readings.length === 0) return null;
 
   // Simulate RBV (Relative Blood Volume %) and dynamic UFR adjustments
-  const data = readings.slice(-40).map((r: any) => {
+  const data = useMemo(() => readings.slice(-40).map((r: any) => {
     // Simulate RBV drop: starts near 0, drops as UF is removed, recovering slightly if UFR drops
     const sessionDur = patient?.sessionDuration || 4;
     const idealDrop = - (r.minuteOfSession / (sessionDur * 60)) * 15; // Max -15% drop over session
@@ -43,7 +43,7 @@ export function ClosedLoopBiofeedback({ patient, readings, lastReading }: any) {
       optimizedUfr: Number(autoUfr.toFixed(1)) || 0,
       aiInterventionMarker: aiIntervened ? Number(autoUfr.toFixed(1)) : null,
     };
-  });
+  }), [readings, patient?.sessionDuration, isBiofeedbackActive]);
 
   const latestData = data[data.length - 1];
   const rbvCritical = latestData.rbv < -12;
@@ -163,6 +163,7 @@ export function ClosedLoopBiofeedback({ patient, readings, lastReading }: any) {
                   />
                   
                   <Area
+                    isAnimationActive={false}
                     yAxisId="left"
                     type="monotone"
                     dataKey="rbv"
@@ -171,6 +172,7 @@ export function ClosedLoopBiofeedback({ patient, readings, lastReading }: any) {
                     fillOpacity={0.2}
                   />
                   <Line
+                    isAnimationActive={false}
                     yAxisId="left"
                     type="monotone"
                     dataKey="rbv"
@@ -180,6 +182,7 @@ export function ClosedLoopBiofeedback({ patient, readings, lastReading }: any) {
                   />
                   
                   <Line
+                    isAnimationActive={false}
                     yAxisId="right"
                     type="stepAfter"
                     dataKey={isBiofeedbackActive ? "optimizedUfr" : "actualUfr"}
@@ -191,6 +194,7 @@ export function ClosedLoopBiofeedback({ patient, readings, lastReading }: any) {
                   
                   {isBiofeedbackActive && (
                     <Scatter 
+                      isAnimationActive={false}
                       yAxisId="right" 
                       dataKey="aiInterventionMarker" 
                       fill="#f59e0b" 

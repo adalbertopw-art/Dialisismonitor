@@ -9,7 +9,7 @@ export function SessionSummary({
   isSessionFinished, 
   aiInterventionsCount 
 }: { 
-  patient: Patient, 
+  patient: any, 
   lastReading: PatientReading, 
   isSessionFinished: boolean,
   aiInterventionsCount: number

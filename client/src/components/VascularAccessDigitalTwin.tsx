@@ -2,12 +2,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, AreaChart, Area } from "recharts";
 import { Activity, AlertOctagon, ArrowDownRight, GitFork, Droplet, Clock } from "lucide-react";
+import { useMemo } from "react";
 
 export function VascularAccessDigitalTwin({ patient, lastReading }: any) {
   if (!patient) return null;
 
   // Generate simulated historical progression to show access deterioration
-  const historicalSessions = Array.from({ length: 12 }).map((_, i) => {
+  const historicalSessions = useMemo(() => Array.from({ length: 12 }).map((_, i) => {
     // Simulated progressive deterioration typical of venous stenosis
     const baseQa = patient.vascularAccessType === "Catéter" ? 350 : 1200;
     const dropQa = (i * (baseQa * 0.04)); // gradual reduction
@@ -23,7 +24,7 @@ export function VascularAccessDigitalTwin({ patient, lastReading }: any) {
       ap: Math.round(baseAp - Math.random() * 10), // Presión Arterial Pre-Bomba (AP)
       qa: Math.max(200, Math.round(baseQa - dropQa - Math.random() * 50)), // Flujo real (Qa)
     };
-  }).reverse(); // From oldest to newest (now)
+  }).reverse(), [patient.vascularAccessType]); // From oldest to newest (now)
 
   const currentQa = historicalSessions[historicalSessions.length - 1].qa;
   const currentVp = historicalSessions[historicalSessions.length - 1].vp;
@@ -86,12 +87,12 @@ export function VascularAccessDigitalTwin({ patient, lastReading }: any) {
                   <ReferenceLine yAxisId="left" y={-250} stroke="#3b82f6" strokeDasharray="3 3" strokeOpacity={0.5} label={{ position: 'insideBottomLeft', value: 'AP Límite', fill: '#3b82f6', fontSize: 10 }} />
                   
                   {/* Presión Venosa */}
-                  <Area yAxisId="left" type="monotone" dataKey="vp" name="VP (mmHg)" stroke="#f43f5e" strokeWidth={2} fillOpacity={1} fill="url(#vpGrad)" />
+                  <Area isAnimationActive={false} yAxisId="left" type="monotone" dataKey="vp" name="VP (mmHg)" stroke="#f43f5e" strokeWidth={2} fillOpacity={1} fill="url(#vpGrad)" />
                   {/* Presión Arterial */}
-                  <Area yAxisId="left" type="monotone" dataKey="ap" name="AP (mmHg)" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#apGrad)" />
+                  <Area isAnimationActive={false} yAxisId="left" type="monotone" dataKey="ap" name="AP (mmHg)" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#apGrad)" />
                   
                   {/* Flujo Qa */}
-                  <Line yAxisId="right" type="monotone" dataKey="qa" name="Flujo Qa (ml/min)" stroke="#10b981" strokeWidth={3} dot={{ r: 3, fill: "#10b981" }} />
+                  <Line isAnimationActive={false} yAxisId="right" type="monotone" dataKey="qa" name="Flujo Qa (ml/min)" stroke="#10b981" strokeWidth={3} dot={{ r: 3, fill: "#10b981" }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

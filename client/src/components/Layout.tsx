@@ -10,7 +10,8 @@ import {
   AlertCircle,
   Database,
   Moon,
-  Sun
+  Sun,
+  Globe
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -18,12 +19,14 @@ import { DashboardStats } from "@shared/types";
 import { AlertsDialog } from "@/components/AlertsDialog";
 import { AdminLoginDialog } from "@/components/AdminLoginDialog";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [location] = useLocation();
   const [loginOpen, setLoginOpen] = useState(false);
   const { toast } = useToast();
+  const { t, language, toggleLanguage } = useLanguage();
 
   const [theme, setTheme] = useState(() => {
     try {
@@ -171,7 +174,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               )}
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-              {!collapsed && <span>Tema {theme === 'dark' ? 'Claro' : 'Oscuro'}</span>}
+              {!collapsed && <span>{t(theme === 'dark' ? "sidebar.theme_light" : "sidebar.theme_dark")}</span>}
+            </button>
+            <button
+              onClick={toggleLanguage}
+              className={cn(
+                "flex items-center gap-3 w-full p-2.5 rounded-lg transition-all text-sm font-medium mt-2",
+                "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              )}
+            >
+              <Globe size={18} />
+              {!collapsed && <span>{t(language === 'es' ? "sidebar.language_en" : "sidebar.language_es")}</span>}
             </button>
             <button
               onClick={toggleAdmin}

@@ -31,6 +31,7 @@ import { Trash2, Edit, BotOff } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 import { useAiOverrides } from "@/hooks/useAiOverrides";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Dashboard() {
   const [time, setTime] = useState(new Date());
@@ -41,6 +42,8 @@ export default function Dashboard() {
   const [editingPatient, setEditingPatient] = useState<any>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
+
 
   const deletePatientMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -131,7 +134,7 @@ export default function Dashboard() {
       <header className="flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Monitor de Unidad — Hemodiálisis
+            {t("dashboard.title")}
           </h1>
           <p className="text-muted-foreground text-sm uppercase font-medium tracking-tight">
             Sesiones en curso · 15 pacientes activos · Predicción HID + IDHTN en
@@ -147,8 +150,7 @@ export default function Dashboard() {
                 minute: "2-digit",
                 second: "2-digit",
                 hour12: true,
-              })}{" "}
-              p. m.
+              })}
             </span>
           </div>
           <AddPatientDialog />

@@ -293,6 +293,19 @@ export default function PatientDetail() {
     setProcessedRecommendations(prev => new Set(prev).add(id));
   };
 
+  const originalUfr = (patient.targetUfVolume * 1000) / (patient.sessionDuration * patient.dryWeight);
+  const currentUfr = originalUfr * ((100 - uiUfrReduction) / 100);
+
+  const handleApplySimulation = (sim: { ufr: number; timeExtension: number; temp: number }) => {
+    const percentageReduction = ((originalUfr - sim.ufr) / originalUfr) * 100;
+    setUiUfrReduction(Math.max(0, Math.min(100, percentageReduction)));
+    setUiTimeExtension(sim.timeExtension / 60); // minutes to hours
+    toast({
+      title: "Parámetros Aplicados",
+      description: `UFR: ${sim.ufr.toFixed(1)} mL/h | Tiempo: +${sim.timeExtension} min | Temp: ${sim.temp}°C`,
+    });
+  };
+
   const currentEffectivePhase = lastReading.idhtEvent === 1 ? "idht" : lastReading.phase || "stable";
   const predictiveHorizon = generatePredictiveHorizon(
     readings,
@@ -335,8 +348,6 @@ export default function PatientDetail() {
   const idhtRiskStatusLabel =
     lastReading.idhtEvent === 1 ? "Crítico" : "Normal";
 
-  const originalUfr = (patient.targetUfVolume * 1000) / (patient.sessionDuration * patient.dryWeight);
-  const currentUfr = originalUfr * ((100 - uiUfrReduction) / 100);
   const targetDurationHours = patient.sessionDuration + uiTimeExtension;
   const timeRemainingHours = Math.max(0, targetDurationHours - (lastReading?.minuteOfSession || 0) / 60);
   
@@ -692,7 +703,7 @@ export default function PatientDetail() {
               </div>
               <div className="space-y-1">
                 <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
-                   Vintage HD
+                   Tiempo HD
                 </span>
                 <p className="text-sm font-mono font-bold text-foreground">
                   {patient.dialysisVintage} meses
@@ -965,6 +976,7 @@ export default function PatientDetail() {
 
                     {/* Historical Area */}
                     <Area
+                      isAnimationActive={false}
                       type="monotone"
                       dataKey="sbp"
                       data={predictiveLog}
@@ -1038,6 +1050,7 @@ export default function PatientDetail() {
 
                     {/* Confidence Interval Area (Simulated) */}
                     <Area
+                      isAnimationActive={false}
                       type="monotone"
                       dataKey="ciMax"
                       data={predictiveHorizon.map((p) => ({
@@ -1052,6 +1065,7 @@ export default function PatientDetail() {
                     
                     {/* AI Interventions */}
                     <Scatter 
+                      isAnimationActive={false}
                       dataKey="aiInterventionMarker" 
                       fill="#f59e0b" 
                       stroke="#000"
@@ -1395,8 +1409,9 @@ export default function PatientDetail() {
             <div className="xl:col-span-2">
               <DigitalTwinSimulator
                 currentSbp={lastReading.sbp || 120}
-                currentUfr={lastReading.ufRate || 10.5}
+                currentUfr={currentUfr || 10.5}
                 riskScore={lastReading.riskScore || 20}
+                onApply={handleApplySimulation}
               />
             </div>
             <div className="xl:col-span-1 h-[400px] xl:h-[500px]">
@@ -1733,7 +1748,7 @@ export default function PatientDetail() {
                   highlight={(patient.dryWeight / 1.75 ** 2) < 21}
                 />
                 <SimpleRow
-                  label="Vintage HD"
+                  label="Tiempo HD"
                   value={`${patient.dialysisVintage} meses`}
                 />
               </CardContent>
