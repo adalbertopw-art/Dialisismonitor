@@ -25,7 +25,7 @@ export function DisclaimerModal() {
         setOpen(false);
       }
     }}>
-      <DialogContent className="sm:max-w-[600px] border-amber-500/20" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-[600px] border-amber-500/20 max-h-[90vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl mb-2 text-amber-500">
             <AlertTriangle className="h-6 w-6" />
